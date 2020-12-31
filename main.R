@@ -46,6 +46,8 @@ library("tidyr")
 library("stringr")
 library("EloRating")
 library("reshape")
+
+
 #starting url
 url <- "https://www.hltv.org/results"
 
@@ -99,9 +101,11 @@ return(totalresult)
 #Single truth for data
 #write.csv(totalresult, 'gold_standard.csv', row.names = FALSE)
 
+
+
 #totalresult <- read.csv("C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv", header = TRUE)
-##Reformatting the Datetime
-#TODO: reformat this using datetime
+##Reformatting the Dataframe
+#TODO: reformat this using Regex- esp. August
 #totalresult$Date <- gsub('Results for ','', totalresult$Date)
 #totalresult$Date <- gsub('st','', totalresult$Date)
 #totalresult$Date <- gsub('Augu','August', totalresult$Date)
@@ -112,6 +116,7 @@ return(totalresult)
 #totalresult$Date <- as.Date(totalresult$Date, format= '%B %d %Y')
 #totalresult <- totalresult[order(totalresult$Date, decreasing = FALSE),]
 #
+
 ##WRITE TO CSV
 #write.csv(totalresult, 'total_results_again.csv', row.names = FALSE)
 
@@ -123,6 +128,8 @@ if (!exists('totalresult')) {
  totalresult <- as.data.frame.matrix(totalresult)
  totalresult$winner <- gsub('Natus Vincere','Natus_Vincere', totalresult$winner)
  totalresult$loser <- gsub('Natus Vincere','Natus_Vincere', totalresult$loser)
+
+
  #ELO rating process
  seqcheck(winner = totalresult$winner, loser = totalresult$loser, Date = totalresult$Date)
  res <- elo.seq(winner = totalresult$winner, loser = totalresult$loser, Date = totalresult$Date, runcheck = FALSE)
@@ -219,8 +226,11 @@ matrixhelper <- as.data.frame(matrixhelper)
 matrixhelper
 
 #matrixhelper[k] <- as.numeric(matrixhelper[k])
+#TODO: Does this behave as expected? Deviations noted from first_round_preds
 subjmeans <- cast(matrixhelper, i~j)
 
+
+#TODO: Add a scatter of score (0-2, 1-2, 2-1, 2-0) against elo difference
 #matrixhelper <- as.data.frame.table(matrixhelper)
 #matrix <- matrixhelper %>%
 #    pivot_wider(names_from = j, values_from = k)
