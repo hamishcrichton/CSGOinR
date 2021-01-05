@@ -35,6 +35,16 @@ if (!("EloRating" %in% installed.packages())) {
 if (!("reshape" %in% installed.packages())) {
  install.packages("reshape")
 }
+if (!("ggbeeswarm" %in% installed.packages())) {
+ install.packages("ggbeeswarm")
+}
+if (!("ggforce" %in% installed.packages())) {
+ install.packages("ggforce")
+}
+if (!("tidyverse" %in% installed.packages())) {
+ install.packages("tidyverse")
+}
+
 
 library("elo")
 library("vctrs")
@@ -46,7 +56,9 @@ library("tidyr")
 library("stringr")
 library("EloRating")
 library("reshape")
-
+library("tidyverse")
+library("ggbeeswarm")
+library("ggforce")
 
 #starting url
 url <- "https://www.hltv.org/results"
@@ -100,22 +112,26 @@ return(totalresult)
 
 #Single truth for data
 #write.csv(totalresult, 'gold_standard.csv', row.names = FALSE)
+gold_standard <- "C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv"
 
+clean_data <- function (file_loc){
 
-
-#totalresult <- read.csv("C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv", header = TRUE)
+totalresult <- read.csv(gold_standard, header = TRUE)
 ##Reformatting the Dataframe
 #TODO: reformat this using Regex- esp. August
-#totalresult$Date <- gsub('Results for ','', totalresult$Date)
-#totalresult$Date <- gsub('st','', totalresult$Date)
-#totalresult$Date <- gsub('Augu','August', totalresult$Date)
-#totalresult$Date <- gsub('nd','', totalresult$Date)
-#totalresult$Date <- gsub('rd','', totalresult$Date)
-#totalresult$Date <- gsub('th','', totalresult$Date)
-##write.csv(totalresult, 'total_results_again.csv', row.names = FALSE)
-#totalresult$Date <- as.Date(totalresult$Date, format= '%B %d %Y')
-#totalresult <- totalresult[order(totalresult$Date, decreasing = FALSE),]
-#
+totalresult$Date <- gsub('Results for ','', totalresult$Date)
+totalresult$Date <- gsub('st','', totalresult$Date)
+totalresult$Date <- gsub('Augu','August', totalresult$Date)
+totalresult$Date <- gsub('nd','', totalresult$Date)
+totalresult$Date <- gsub('rd','', totalresult$Date)
+totalresult$Date <- gsub('th','', totalresult$Date)
+#write.csv(totalresult, 'total_results_again.csv', row.names = FALSE)
+totalresult$Date <- as.Date(totalresult$Date, format= '%B %d %Y')
+totalresult <- totalresult[order(totalresult$Date, decreasing = FALSE),]
+return(totalresult)
+}
+
+#totalresult <- clean_data(gold_standard)
 
 ##WRITE TO CSV
 #write.csv(totalresult, 'total_results_again.csv', row.names = FALSE)
@@ -129,16 +145,21 @@ if (!exists('totalresult')) {
  totalresult$winner <- gsub('Natus Vincere','Natus_Vincere', totalresult$winner)
  totalresult$loser <- gsub('Natus Vincere','Natus_Vincere', totalresult$loser)
 
-
  #ELO rating process
  seqcheck(winner = totalresult$winner, loser = totalresult$loser, Date = totalresult$Date)
- res <- elo.seq(winner = totalresult$winner, loser = totalresult$loser, Date = totalresult$Date, runcheck = FALSE)
+ res <- elo.seq(winner = totalresult$winner, loser = totalresult$loser, Date = totalresult$Date, runcheck = FALSE, k=39)
+
+ #Extract elo values for participants at the start of the tournament
  pre_tournament_elo <- extract_elo(res, extractdate = "2020-12-07", IDs = c("mousesports", "OG", "G2", "FURIA", "Natus_Vincere", "BIG", "Astralis", "Vitality"))
  summary(res)
 
- write.csv(pre_tournament_elo, 'pre_tournament_elo.csv', row.names = FALSE)
+ write.csv(pre_tournament_elo, 'pre_tournament_elo.csv', row.names = TRUE)
  eloplot <- eloplot(eloobject = res, ids = c("mousesports", "OG", "G2", "FURIA", "Natus_Vincere", "BIG", "Astralis", "Vitality"), from = "2018-01-01", to = "2020-12-07")
 }
+
+
+
+#"mousesports", "OG", "G2", "FURIA", "Natus_Vincere", "BIG", "Astralis", "Vitality"
 
 #FIRST BRACKET
 match1 <- winprob(pre_tournament_elo['Vitality'], pre_tournament_elo['mousesports'])
@@ -203,6 +224,7 @@ postround5elo <- e.single(postround4elo['BIG'], postround4elo['Astralis'],2)
 #SIXTH BRACKET
 match14 <- winprob(postround4elo['Vitality'], postround5elo['Astralis'])
 
+#Create a matrix of ex-ante win probabilities.
 teams <- c("mousesports", "OG", "G2", "FURIA", "Natus_Vincere", "BIG", "Astralis", "Vitality")
 for (j in teams) {
       for (i in teams) {
@@ -221,16 +243,43 @@ for (j in teams) {
 matrixhelper
 rm(i,k,j, prob)
 
-
 matrixhelper <- as.data.frame(matrixhelper)
 matrixhelper
 
-#matrixhelper[k] <- as.numeric(matrixhelper[k])
 #TODO: Does this behave as expected? Deviations noted from first_round_preds
 subjmeans <- cast(matrixhelper, i~j)
 
 
 #TODO: Add a scatter of score (0-2, 1-2, 2-1, 2-0) against elo difference
+em1 <- c((pre_tournament_elo['Vitality'] - pre_tournament_elo['mousesports']), "2-0")
+em2 <- c((pre_tournament_elo['Natus_Vincere'] - pre_tournament_elo['Astralis']), "2-1")
+em3 <- c((pre_tournament_elo['G2'] - pre_tournament_elo['FURIA']), "2-1")
+em4 <- c((pre_tournament_elo['OG'] - pre_tournament_elo['BIG']), "0-2")
+
+em5 <- c((postround1elo['Vitality'] - postround1elo['Natus_Vincere']), "2-0")
+em6 <- c((postround1elo['mousesports'] - postround1elo['Astralis']), "0-2")
+em7 <- c((postround1elo['G2'] - postround1elo['BIG']), "1-2" )
+em8 <- c((postround1elo['OG'] - postround1elo['FURIA']), "1-2")
+
+em9 <- c((postround2elo['G2'] - postround2elo['Astralis']), "0-2")
+em10 <- c((postround2elo['Natus_Vincere'] - postround2elo['FURIA']), "2-0")
+
+em11 <- c((postround3elo['Natus_Vincere'] - postround3elo['Astralis']), "0-2")
+em12 <- c((postround2elo['Vitality'] - postround2elo['BIG']), "2-1")
+
+em13 <- c((postround4elo['BIG'] - postround4elo['Astralis']), "0-2" )
+em14 <- c((postround4elo['Vitality'] - postround5elo['Astralis']), "2-1")
+
+
+elo_difference_result <- rbind(em1, em2, em3, em4, em5, em6, em7, em8, em9, em10, em11, em12, em13, em14)
+#elo_difference_result %>%
+#  rename()
+#
+#ggplot(data = elo_difference_result) +
+#  aes(y = body_mass_g, x = species) +
+#  geom_beeswarm(cex = 0.5) +
+#  coord_flip()
+
 #matrixhelper <- as.data.frame.table(matrixhelper)
 #matrix <- matrixhelper %>%
 #    pivot_wider(names_from = j, values_from = k)
@@ -246,3 +295,4 @@ abline(v = ores$best$k, col = "red")
 return(ores$best)
 }
 
+optimise_for_k(res)
