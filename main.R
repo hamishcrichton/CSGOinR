@@ -4,48 +4,8 @@
 # Created on: 16/12/2020
 
 
-#Manage packages
-if (!("elo" %in% installed.packages())) {
- install.packages("elo")
-}
-if (!("vctrs" %in% installed.packages())) {
- install.packages("vctrs")
-}
-if (!("rvest" %in% installed.packages())) {
- install.packages("rvest")
-}
-if (!("magrittr" %in% installed.packages())) {
- install.packages("magrittr")
-}
-if (!("stringr" %in% installed.packages())) {
- install.packages("stringr")
-}
-if (!("dplyr" %in% installed.packages())) {
- install.packages("dplyr")
-}
-if (!("tidyr" %in% installed.packages())) {
- install.packages("tidyr")
-}
-if (!("stringr" %in% installed.packages())) {
- install.packages("stringr")
-}
-if (!("EloRating" %in% installed.packages())) {
- install.packages("EloRating")
-}
-if (!("reshape" %in% installed.packages())) {
- install.packages("reshape")
-}
-if (!("ggbeeswarm" %in% installed.packages())) {
- install.packages("ggbeeswarm")
-}
-if (!("ggforce" %in% installed.packages())) {
- install.packages("ggforce")
-}
-if (!("tidyverse" %in% installed.packages())) {
- install.packages("tidyverse")
-}
-
-
+#manage packages
+#TODO: which packages are actually used in the scraping?
 library("elo")
 library("vctrs")
 library("rvest")
@@ -61,238 +21,201 @@ library("ggbeeswarm")
 library("ggforce")
 
 #starting url
-url <- "https://www.hltv.org/results"
+url <- "https://www.hltv.org/results/"
 
+#For one page of results, visit each link and scrape the required information
+heavy_scrape_one_page <- function (s_tree) {
 
-### SCRAPING FUNCTIONS
+match_links <- s_tree %>%
+  html_nodes(".result-con ") %>%
+  html_node(".a-reset") %>%
+  html_attr("href")
 
-#Return Date, winner, loser
-scrape_Dwl_one_page <- function (s_tree) {
+for (k in match_links) {
+  k <- paste0("https://www.hltv.org",k)
+  s <- rvest::html_session(k)
+  s_tree <- xml2::read_html(s)
 
-day_results_nodes <- s_tree %>%
- html_nodes(xpath="//div[contains(@class, 'results-sublist')]")
-for (j in seq_along(day_results_nodes)) {
- i <- day_results_nodes[[j]]
- date <- i %>%
-  html_node('.standard-headline') %>%
-  html_text()
+  ### Scrape the results from one page
+  date <- s_tree %>%
+   html_node('.date') %>%
+   html_text()
+  ###data-time-format="do 'of' MMMM y"
 
- winner <- i %>%
-  html_nodes('.team-won') %>%
-  html_text()
+  team1 <- s_tree %>%
+   html_node('.team1-gradient .teamName') %>%
+   html_text()
+  team1 <- gsub(' ','_', team1)
 
- loser <- i %>%
-  html_nodes('.team:not(.team-won)') %>%
-  html_text()
+  team1_score <- s_tree %>%
+    html_node('.team1-gradient .won, .lost, .tie') %>%
+    html_text()
 
- gameresult <- cbind(Date = date, winner, loser)
+  team2 <- s_tree %>%
+    html_node('.team2-gradient .teamName') %>%
+    html_text()
 
- if (exists("totalresult")) {
-  totalresult <- rbind(totalresult, gameresult)
+  team2_score <- s_tree %>%
+    html_node('.team2-gradient .won, .lost, .tie') %>%
+    html_text()
+
+  form <- s_tree %>%
+    html_nodes('.past-matches td.spoiler.result') %>%
+    html_attr('class')
+  form <- gsub('spoiler result ','', form)
+  form <- gsub('won',"W", form)
+  form <- gsub('lost',"L", form)
+  team1_form <- paste(form[1:5], collapse ='')
+  team2_form <- paste(form[6:10], collapse ='')
+  rm(form)
+
+  team_rankings <- s_tree %>%
+    html_nodes('.teamRanking') %>%
+    html_text()
+  team1_rank <- team_rankings[1]
+  team2_rank <- team_rankings[2]
+  rm(team_rankings)
+
+  head2head <- s_tree %>%
+    html_nodes('.head-to-head .bold') %>%
+    html_text()
+  head2head <- paste(head2head[1], head2head[3], sep=" : ")
+
+  t1_rounds_won_offence <- 0
+  t2_rounds_won_offence <- 0
+  t1_rounds_won_defence <- 0
+  t2_rounds_won_defence <- 0
+
+  out <- tryCatch(
+      {# Just to highlight: if you want to use more than one R expression in the "try" part then you'll have to use curly brackets. 'tryCatch()' will return the last evaluated expression in case the "try" part was completed successfully
+          message("This is the 'try' part")
+          first_through <- s_tree %>%
+            html_nodes('.results-center-half-score') %>%
+            html_nodes('.ct, .t')
+
+          for (i in first_through) {
+            j <- i %>%
+              html_text()
+            k <- i %>%
+              html_attrs()
+
+          if (exists("first_round")) {
+            first_round <- rbind(first_round, (paste(j, k)))
+          } else {
+            first_round <- paste(j,k)
+          }
+        }
+            #now run through the odd numbers for team1 wins
+            #if ends in ct, add to ct rounds won
+            #even numbers are team2 wins (=team1 losses)
+            t1_rounds_won_offence <- 0
+            t2_rounds_won_offence <- 0
+            t1_rounds_won_defence <- 0
+            t2_rounds_won_defence <- 0
+
+            for (l in seq_along(first_round)) {
+              if ((l %% 2 == 1) & grepl('ct$', first_round[l])) {
+                t1_rounds_won_defence <- as.numeric(t1_rounds_won_defence) + as.numeric(str_split(first_round[l],' ')[[1]][1])
+              } else if ((l %% 2 == 1) & grepl(' t$', first_round[l])){
+                t1_rounds_won_offence <- as.numeric(t1_rounds_won_offence) + as.numeric(str_split(first_round[l],' ')[[1]][1])
+              } else if ((l %% 2 == 0) & grepl('ct$', first_round[l])){
+                t2_rounds_won_defence <- as.numeric(t2_rounds_won_defence) + as.numeric(str_split(first_round[l],' ')[[1]][1])
+              } else if ((l %% 2 == 0) & grepl(' t$', first_round[l])){
+                t2_rounds_won_offence <- as.numeric(t2_rounds_won_offence) + as.numeric(str_split(first_round[l],' ')[[1]][1])
+              }
+            }
+            rounds_won <- c(t1_rounds_won_offence, t2_rounds_won_offence, t1_rounds_won_defence, t2_rounds_won_defence)
+            rm(first_through, first_round, l)
+            #return(rounds_won)
+      },
+      error=function(cond) {
+        # Choose a return value in case of error
+
+        #return(totalresult)
+        }
+
+  )
+
+    out <- tryCatch(
+      {# Just to highlight: if you want to use more than one R expression in the "try" part then you'll have to use curly brackets. 'tryCatch()' will return the last evaluated expression in case the "try" part was completed successfully
+          player_stats <- s_tree %>%
+            html_nodes('.stats-content') %>%
+            html_nodes(xpath='//div[@id = "all-content"]') %>%
+            html_nodes(xpath='//table[@class = "table totalstats"]') %>%
+            html_nodes('.rating') %>%
+            html_text()
+          team1_player_stats <- paste(player_stats[2:6], collapse=', ')
+          team2_player_stats <- paste(player_stats[8:12], collapse=', ')
+          rm(player_stats)
+          #return(player_stats)
+      },
+      error=function(cond) {
+        # Choose a return value in case of error
+        player_stats <- c('NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA')
+        #return(player_stats)
+        }
+
+  )
+
+  match_result <- c(date, team1, team1_score, team2, team2_score, head2head, team1_form, team2_form, team1_rank, team2_rank, t1_rounds_won_offence, t2_rounds_won_offence, t1_rounds_won_defence, t2_rounds_won_defence, team1_player_stats, team2_player_stats)
+   if (exists("totalresult")) {
+  totalresult <- rbind(totalresult, match_result)
  } else {
-  totalresult <- gameresult
+  totalresult <- match_result
+
  }
+  Sys.sleep(10)
 }
+  return(totalresult)
+}
+
+#Testing heavy_scrape_one_page
+#  s <- rvest::html_session(url)
+#  s_tree <- xml2::read_html(s)
+#heavy_scrape_one_page(s_tree)
+
+#Move between pages of results, running heavy_scrape_one_page on each. Catches error when pages run out.
+heavy_scrape <- function(url) {
+  s <- rvest::html_session(url)
+  s_tree <- xml2::read_html(s)
+  totalresult <- heavy_scrape_one_page(s_tree)
+
+  out <- tryCatch(
+      {# Just to highlight: if you want to use more than one R expression in the "try" part then you'll have to use curly brackets. 'tryCatch()' will return the last evaluated expression in case the "try" part was completed successfully
+          message("This is the 'try' part")
+          while (TRUE) {
+            url <- rvest::html_session(url)
+            url <- url %>% follow_link(xpath = '//div[1]/div[2]/div[2]/a[2]')
+            s_tree <- xml2::read_html(url)
+            totalresult <- heavy_scrape_one_page(s_tree)
+            print(length(totalresult))
+          }
+          return(totalresult)
+          # The return value of `readLines()` is the actual value that will be returned in case there is no condition (e.g. warning or error).
+          # You don't need to state the return value via `return()` as code in the "try" part is not wrapped inside a function (unlike that for the condition handlers for warnings and error below)
+      },
+      warning=function(cond) {
+          # Choose a return value in case of warning
+          totalresult <- as.data.frame(totalresult)
+          return(totalresult)
+      },
+      error=function(cond) {
+        # Choose a return value in case of error
+        totalresult <- as.data.frame(totalresult)
+        return(totalresult)
+        }
+
+  )
 return(totalresult)
 }
 
+#Main function
+totalresult <- heavy_scrape(url)
 
-#TODO improve the 'while' to incorporate a try; write this as a function.
-#s <- rvest::html_session(url)
-#s_tree <- xml2::read_html(s)
-#totalresult <- scrape_Dwl_one_page(s_tree)
-#
-#while (TRUE) {
-# s <- s %>% follow_link(xpath = '//div[1]/div[2]/div[2]/a[2]')
-# s_tree <- xml2::read_html(s)
-# totalresult <- scrape_Dwl_one_page(s_tree)
-#}
+#Change column names to be legible
+colnames(totalresult) <- c('date', 'team1', 'team1_score', 'team2', 'team2_score', 'head2head', 'team1_form', 'team2_form', 'team1_rank', 'team2_rank', 't1_rounds_won_offence', 't2_rounds_won_offence', 't1_rounds_won_defence', 't2_rounds_won_defence', 'team1_player_stats', 'team2_player_stats')
 
-#totalresult <- as.data.frame(totalresult)
 
-#Single truth for data
-#write.csv(totalresult, 'gold_standard.csv', row.names = FALSE)
+#Single truth for data: write to csv to remove the need to repeat
+write.csv(totalresult, 'gold_standard.csv', row.names = FALSE)
 gold_standard <- "C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv"
-
-clean_data <- function (file_loc){
-
-totalresult <- read.csv(gold_standard, header = TRUE)
-##Reformatting the Dataframe
-#TODO: reformat this using Regex- esp. August
-totalresult$Date <- gsub('Results for ','', totalresult$Date)
-totalresult$Date <- gsub('st','', totalresult$Date)
-totalresult$Date <- gsub('Augu','August', totalresult$Date)
-totalresult$Date <- gsub('nd','', totalresult$Date)
-totalresult$Date <- gsub('rd','', totalresult$Date)
-totalresult$Date <- gsub('th','', totalresult$Date)
-#write.csv(totalresult, 'total_results_again.csv', row.names = FALSE)
-totalresult$Date <- as.Date(totalresult$Date, format= '%B %d %Y')
-totalresult <- totalresult[order(totalresult$Date, decreasing = FALSE),]
-return(totalresult)
-}
-
-#totalresult <- clean_data(gold_standard)
-
-##WRITE TO CSV
-#write.csv(totalresult, 'total_results_again.csv', row.names = FALSE)
-
-
-
-#Read in the data
-if (!exists('totalresult')) {
- totalresult <- read.csv("C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\total_results_again.csv", header = TRUE)
- totalresult <- as.data.frame.matrix(totalresult)
- totalresult$winner <- gsub('Natus Vincere','Natus_Vincere', totalresult$winner)
- totalresult$loser <- gsub('Natus Vincere','Natus_Vincere', totalresult$loser)
-
- #ELO rating process
- seqcheck(winner = totalresult$winner, loser = totalresult$loser, Date = totalresult$Date)
- res <- elo.seq(winner = totalresult$winner, loser = totalresult$loser, Date = totalresult$Date, runcheck = FALSE, k=39)
-
- #Extract elo values for participants at the start of the tournament
- pre_tournament_elo <- extract_elo(res, extractdate = "2020-12-07", IDs = c("mousesports", "OG", "G2", "FURIA", "Natus_Vincere", "BIG", "Astralis", "Vitality"))
- summary(res)
-
- write.csv(pre_tournament_elo, 'pre_tournament_elo.csv', row.names = TRUE)
- eloplot <- eloplot(eloobject = res, ids = c("mousesports", "OG", "G2", "FURIA", "Natus_Vincere", "BIG", "Astralis", "Vitality"), from = "2018-01-01", to = "2020-12-07")
-}
-
-
-
-#"mousesports", "OG", "G2", "FURIA", "Natus_Vincere", "BIG", "Astralis", "Vitality"
-
-#FIRST BRACKET
-match1 <- winprob(pre_tournament_elo['Vitality'], pre_tournament_elo['mousesports'])
-match2 <- winprob(pre_tournament_elo['Natus_Vincere'], pre_tournament_elo['Astralis'])
-match3 <- winprob(pre_tournament_elo['G2'], pre_tournament_elo['FURIA'])
-match4 <- winprob(pre_tournament_elo['OG'], pre_tournament_elo['BIG'])
-first_round_preds <- c(match1, match2, match3, match4)
-rm(match1, match2, match3, match4)
-
-#UPDATE ELO based on first bracket results
-m1 <- e.single(pre_tournament_elo['Vitality'], pre_tournament_elo['mousesports'],1)
-m2 <- e.single(pre_tournament_elo['Natus_Vincere'], pre_tournament_elo['Astralis'], 1)
-m3 <- e.single(pre_tournament_elo['G2'], pre_tournament_elo['FURIA'], 1)
-m4 <- e.single(pre_tournament_elo['OG'], pre_tournament_elo['BIG'], 2)
-
-postround1elo <- c(m1, m2, m3, m4)
-rm(m1, m2, m3, m4)
-
-#SECOND BRACKET
-match5 <- winprob(postround1elo['Vitality'], postround1elo['Natus_Vincere'])
-match6 <- winprob(postround1elo['mousesports'], postround1elo['Astralis'])
-match7 <- winprob(postround1elo['G2'], postround1elo['BIG'])
-match8 <- winprob(postround1elo['OG'], postround1elo['FURIA'])
-
-#UPDATE ELO
-m1 <- e.single(postround1elo['Vitality'], postround1elo['Natus_Vincere'],1)
-m2 <- e.single(postround1elo['mousesports'], postround1elo['Astralis'], 2)
-m3 <- e.single(postround1elo['G2'], postround1elo['BIG'], 2)
-m4 <- e.single(postround1elo['OG'], postround1elo['FURIA'], 2)
-
-postround2elo <- c(m1, m2, m3, m4)
-rm(m1, m2, m3, m4)
-
-#THIRD BRACKET
-match9 <- winprob(postround2elo['G2'], postround2elo['Astralis'])
-match10 <- winprob(postround2elo['Natus_Vincere'], postround2elo['FURIA'])
-
-#UPDATE ELO
-m1 <- e.single(postround2elo['G2'], postround2elo['Astralis'],2)
-m2 <- e.single(postround2elo['Natus_Vincere'], postround2elo['FURIA'], 1)
-
-postround3elo <- c(m1, m2)
-rm(m1, m2)
-
-#FOURTH BRACKET
-match11 <- winprob(postround3elo['Natus_Vincere'], postround3elo['Astralis'])
-match12 <- winprob(postround2elo['Vitality'], postround2elo['BIG'])
-
-#UPDATE ELO
-m1 <- e.single(postround3elo['Natus_Vincere'], postround3elo['Astralis'],2)
-m2 <- e.single(postround2elo['Vitality'], postround2elo['BIG'], 1)
-
-postround4elo <- c(m1, m2)
-rm(m1, m2)
-
-#FIFTH BRACKET
-match13 <- winprob(postround4elo['BIG'], postround4elo['Astralis'])
-#UPDATE ELO
-postround5elo <- e.single(postround4elo['BIG'], postround4elo['Astralis'],2)
-
-
-#SIXTH BRACKET
-match14 <- winprob(postround4elo['Vitality'], postround5elo['Astralis'])
-
-#Create a matrix of ex-ante win probabilities.
-teams <- c("mousesports", "OG", "G2", "FURIA", "Natus_Vincere", "BIG", "Astralis", "Vitality")
-for (j in teams) {
-      for (i in teams) {
-            if (i == j) {
-             k <- NA
-            } else {
-             k <- round(as.numeric(winprob(pre_tournament_elo[j], pre_tournament_elo[i])), digits=4)}
-            prob <- cbind(i, j, k)
-
-            if (exists("matrixhelper")) {
-             matrixhelper <- rbind(matrixhelper, prob)
-            } else {
-             matrixhelper <- prob}
-       }
-}
-matrixhelper
-rm(i,k,j, prob)
-
-matrixhelper <- as.data.frame(matrixhelper)
-matrixhelper
-
-#TODO: Does this behave as expected? Deviations noted from first_round_preds
-subjmeans <- cast(matrixhelper, i~j)
-
-
-#TODO: Add a scatter of score (0-2, 1-2, 2-1, 2-0) against elo difference
-em1 <- c((pre_tournament_elo['Vitality'] - pre_tournament_elo['mousesports']), "2-0")
-em2 <- c((pre_tournament_elo['Natus_Vincere'] - pre_tournament_elo['Astralis']), "2-1")
-em3 <- c((pre_tournament_elo['G2'] - pre_tournament_elo['FURIA']), "2-1")
-em4 <- c((pre_tournament_elo['OG'] - pre_tournament_elo['BIG']), "0-2")
-
-em5 <- c((postround1elo['Vitality'] - postround1elo['Natus_Vincere']), "2-0")
-em6 <- c((postround1elo['mousesports'] - postround1elo['Astralis']), "0-2")
-em7 <- c((postround1elo['G2'] - postround1elo['BIG']), "1-2" )
-em8 <- c((postround1elo['OG'] - postround1elo['FURIA']), "1-2")
-
-em9 <- c((postround2elo['G2'] - postround2elo['Astralis']), "0-2")
-em10 <- c((postround2elo['Natus_Vincere'] - postround2elo['FURIA']), "2-0")
-
-em11 <- c((postround3elo['Natus_Vincere'] - postround3elo['Astralis']), "0-2")
-em12 <- c((postround2elo['Vitality'] - postround2elo['BIG']), "2-1")
-
-em13 <- c((postround4elo['BIG'] - postround4elo['Astralis']), "0-2" )
-em14 <- c((postround4elo['Vitality'] - postround5elo['Astralis']), "2-1")
-
-
-elo_difference_result <- rbind(em1, em2, em3, em4, em5, em6, em7, em8, em9, em10, em11, em12, em13, em14)
-#elo_difference_result %>%
-#  rename()
-#
-#ggplot(data = elo_difference_result) +
-#  aes(y = body_mass_g, x = species) +
-#  geom_beeswarm(cex = 0.5) +
-#  coord_flip()
-
-#matrixhelper <- as.data.frame.table(matrixhelper)
-#matrix <- matrixhelper %>%
-#    pivot_wider(names_from = j, values_from = k)
-
-
-#HYPERPARAMETER OPTIMISATION
-optimise_for_k <- function(elo.seq_output) {
-ores <- optimizek(elo.seq_output, krange = c(10, 500), resolution = 491)
-
-plot(ores$complete$k, ores$complete$loglik, type = "l", las = 1, xlab = bquote(italic(k)), ylab = "log likelihood")
-abline(v = ores$best$k, col = "red")
-
-return(ores$best)
-}
-
-optimise_for_k(res)
