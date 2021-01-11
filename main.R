@@ -88,7 +88,6 @@ for (k in match_links) {
 
   out <- tryCatch(
       {# Just to highlight: if you want to use more than one R expression in the "try" part then you'll have to use curly brackets. 'tryCatch()' will return the last evaluated expression in case the "try" part was completed successfully
-          message("This is the 'try' part")
           first_through <- s_tree %>%
             html_nodes('.results-center-half-score') %>%
             html_nodes('.ct, .t')
@@ -133,7 +132,6 @@ for (k in match_links) {
 
         #return(totalresult)
         }
-
   )
 
     out <- tryCatch(
@@ -144,14 +142,18 @@ for (k in match_links) {
             html_nodes(xpath='//table[@class = "table totalstats"]') %>%
             html_nodes('.rating') %>%
             html_text()
-          team1_player_stats <- paste(player_stats[2:6], collapse=', ')
-          team2_player_stats <- paste(player_stats[8:12], collapse=', ')
+
+          player_stats <- paste(player_stats, collapse = ', ')
+
+          statsplaceholder <- str_split(player_stats,'Rating2.0,')
+          team1_player_stats <- statsplaceholder[[1]][2]
+          team2_player_stats <- statsplaceholder[[1]][3]
           rm(player_stats)
           #return(player_stats)
       },
       error=function(cond) {
         # Choose a return value in case of error
-        player_stats <- c('NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA')
+        player_stats <- c('N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N')
         #return(player_stats)
         }
 
@@ -162,9 +164,8 @@ for (k in match_links) {
   totalresult <- rbind(totalresult, match_result)
  } else {
   totalresult <- match_result
-
  }
-  Sys.sleep(10)
+  Sys.sleep(5)
 }
   return(totalresult)
 }
@@ -181,29 +182,30 @@ heavy_scrape <- function(url) {
   totalresult <- heavy_scrape_one_page(s_tree)
 
   out <- tryCatch(
-      {# Just to highlight: if you want to use more than one R expression in the "try" part then you'll have to use curly brackets. 'tryCatch()' will return the last evaluated expression in case the "try" part was completed successfully
-          message("This is the 'try' part")
+      {# Loop until error: Move to the next page; scrape that page; collate the results
+          #message("This is the 'try' part")
           while (TRUE) {
-            url <- rvest::html_session(url)
-            url <- url %>% follow_link(xpath = '//div[1]/div[2]/div[2]/a[2]')
-            s_tree <- xml2::read_html(url)
-            totalresult <- heavy_scrape_one_page(s_tree)
+            starting_time <- Sys.time()
+            s <- s %>% follow_link(xpath = '//div[1]/div[2]/div[2]/a[2]')
+            s_tree <- xml2::read_html(s)
+            more_results <- heavy_scrape_one_page(s_tree)
+            totalresult <- rbind(totalresult, more_results)
             print(length(totalresult))
+            end_time <- Sys.time()
+            time_taken <- end_time - starting_time
+            print(paste0("the last 100 records took ", time_taken))
           }
-          return(totalresult)
-          # The return value of `readLines()` is the actual value that will be returned in case there is no condition (e.g. warning or error).
-          # You don't need to state the return value via `return()` as code in the "try" part is not wrapped inside a function (unlike that for the condition handlers for warnings and error below)
       },
       warning=function(cond) {
           # Choose a return value in case of warning
-          totalresult <- as.data.frame(totalresult)
-          return(totalresult)
+        message("Kicked a warning")
+
       },
       error=function(cond) {
         # Choose a return value in case of error
-        totalresult <- as.data.frame(totalresult)
-        return(totalresult)
-        }
+        message("Error message")
+
+      }
 
   )
 return(totalresult)
