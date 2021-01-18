@@ -21,7 +21,7 @@ library("ggbeeswarm")
 library("ggforce")
 
 #starting url
-url <- "https://www.hltv.org/results/"
+url <- "https://www.hltv.org/results?offset=1300"
 
 #For one page of results, visit each link and scrape the required information
 heavy_scrape_one_page <- function (s_tree) {
@@ -32,9 +32,15 @@ match_links <- s_tree %>%
   html_attr("href")
 
 for (k in match_links) {
+tiout <- tryCatch(
+      {
   k <- paste0("https://www.hltv.org",k)
   s <- rvest::html_session(k)
-  s_tree <- xml2::read_html(s)
+  s_tree <- xml2::read_html(s)},
+      error=function(e) e)
+
+  if (inherits(tiout, "error")) next
+  if (inherits(tiout, "warning")) next
 
   ### Scrape the results from one page
   date <- s_tree %>%
@@ -48,7 +54,8 @@ for (k in match_links) {
   team1 <- gsub(' ','_', team1)
 
   team1_score <- s_tree %>%
-    html_node('.team1-gradient .won, .lost, .tie') %>%
+    html_node('.team1-gradient') %>%
+    html_node('.won, .lost, .tie') %>%
     html_text()
 
   team2 <- s_tree %>%
@@ -56,7 +63,8 @@ for (k in match_links) {
     html_text()
 
   team2_score <- s_tree %>%
-    html_node('.team2-gradient .won, .lost, .tie') %>%
+    html_node('.team2-gradient') %>%
+    html_node('.won, .lost, .tie') %>%
     html_text()
 
   form <- s_tree %>%
@@ -87,7 +95,7 @@ for (k in match_links) {
   t2_rounds_won_defence <- 0
 
   out <- tryCatch(
-      {# Just to highlight: if you want to use more than one R expression in the "try" part then you'll have to use curly brackets. 'tryCatch()' will return the last evaluated expression in case the "try" part was completed successfully
+      {
           first_through <- s_tree %>%
             html_nodes('.results-center-half-score') %>%
             html_nodes('.ct, .t')
@@ -135,8 +143,7 @@ for (k in match_links) {
   )
 
     out <- tryCatch(
-      {# Just to highlight: if you want to use more than one R expression in the "try" part then you'll have to use curly brackets. 'tryCatch()' will return the last evaluated expression in case the "try" part was completed successfully
-          player_stats <- s_tree %>%
+      {   player_stats <- s_tree %>%
             html_nodes('.stats-content') %>%
             html_nodes(xpath='//div[@id = "all-content"]') %>%
             html_nodes(xpath='//table[@class = "table totalstats"]') %>%
@@ -165,14 +172,17 @@ for (k in match_links) {
  } else {
   totalresult <- match_result
  }
-  Sys.sleep(5)
+
+  Sys.sleep(1)
 }
   return(totalresult)
 }
 
+
 #Testing heavy_scrape_one_page
-#  s <- rvest::html_session(url)
-#  s_tree <- xml2::read_html(s)
+#url <- 'https://www.hltv.org/results?offset=1300'
+#s <- rvest::html_session(url)
+#s_tree <- xml2::read_html(s)
 #heavy_scrape_one_page(s_tree)
 
 #Move between pages of results, running heavy_scrape_one_page on each. Catches error when pages run out.
@@ -180,20 +190,17 @@ heavy_scrape <- function(url) {
   s <- rvest::html_session(url)
   s_tree <- xml2::read_html(s)
   totalresult <- heavy_scrape_one_page(s_tree)
-
   out <- tryCatch(
       {# Loop until error: Move to the next page; scrape that page; collate the results
           #message("This is the 'try' part")
           while (TRUE) {
-            starting_time <- Sys.time()
             s <- s %>% follow_link(xpath = '//div[1]/div[2]/div[2]/a[2]')
             s_tree <- xml2::read_html(s)
             more_results <- heavy_scrape_one_page(s_tree)
             totalresult <- rbind(totalresult, more_results)
-            print(length(totalresult))
-            end_time <- Sys.time()
-            time_taken <- end_time - starting_time
-            print(paste0("the last 100 records took ", time_taken))
+            if (length(totalresult) %% 16000 ==0) {
+              write.csv(totalresult, 'test_case.csv', row.names = FALSE)
+            }
           }
       },
       warning=function(cond) {
@@ -208,16 +215,15 @@ heavy_scrape <- function(url) {
       }
 
   )
-return(totalresult)
+  #Change column names to be legible
+  colnames(totalresult) <- c('date', 'team1', 'team1_score', 'team2', 'team2_score', 'head2head', 'team1_form', 'team2_form', 'team1_rank', 'team2_rank', 't1_rounds_won_offence', 't2_rounds_won_offence', 't1_rounds_won_defence', 't2_rounds_won_defence', 'team1_player_stats', 'team2_player_stats')
+
+  return(totalresult)
 }
 
 #Main function
 totalresult <- heavy_scrape(url)
 
-#Change column names to be legible
-colnames(totalresult) <- c('date', 'team1', 'team1_score', 'team2', 'team2_score', 'head2head', 'team1_form', 'team2_form', 'team1_rank', 'team2_rank', 't1_rounds_won_offence', 't2_rounds_won_offence', 't1_rounds_won_defence', 't2_rounds_won_defence', 'team1_player_stats', 'team2_player_stats')
-
-
 #Single truth for data: write to csv to remove the need to repeat
-write.csv(totalresult, 'gold_standard.csv', row.names = FALSE)
+#write.csv(totalresult, 'gold_standard.csv', row.names = FALSE)
 gold_standard <- "C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv"
