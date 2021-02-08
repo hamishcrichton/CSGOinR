@@ -19,9 +19,10 @@ library("reshape")
 library("tidyverse")
 library("ggbeeswarm")
 library("ggforce")
+library("httr")
 
 #starting url
-url <- "https://www.hltv.org/results?offset=1300"
+url <- "https://www.hltv.org/results"
 
 #For one page of results, visit each link and scrape the required information
 heavy_scrape_one_page <- function (s_tree) {
@@ -32,15 +33,11 @@ match_links <- s_tree %>%
   html_attr("href")
 
 for (k in match_links) {
-tiout <- tryCatch(
-      {
   k <- paste0("https://www.hltv.org",k)
   s <- rvest::html_session(k)
-  s_tree <- xml2::read_html(s)},
-      error=function(e) e)
+  if (status_code(s) == 500) {next}
+  s_tree <- xml2::read_html(s)
 
-  if (inherits(tiout, "error")) next
-  if (inherits(tiout, "warning")) next
 
   ### Scrape the results from one page
   date <- s_tree %>%
@@ -196,22 +193,13 @@ heavy_scrape <- function(url) {
           while (TRUE) {
             s <- s %>% follow_link(xpath = '//div[1]/div[2]/div[2]/a[2]')
             s_tree <- xml2::read_html(s)
+            if (status_code(s) == 500) {next}
             more_results <- heavy_scrape_one_page(s_tree)
             totalresult <- rbind(totalresult, more_results)
             if (length(totalresult) %% 16000 ==0) {
-              write.csv(totalresult, 'test_case.csv', row.names = FALSE)
+              write.csv(totalresult, 'test_case_total.csv', row.names = FALSE)
             }
           }
-      },
-      warning=function(cond) {
-          # Choose a return value in case of warning
-        message("Kicked a warning")
-
-      },
-      error=function(cond) {
-        # Choose a return value in case of error
-        message("Error message")
-
       }
 
   )

@@ -18,9 +18,9 @@ dataframe <- totalresult[order(dataframe$Date, decreasing = FALSE),]
 return(dataframe)
 }
 
-gold_standard <- "C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv"
-totalresult <- read.csv(gold_standard, header = TRUE)
-
+#gold_standard <- "C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv"
+totalresult <- read.csv("total_results_again.csv", header = TRUE)
+clean_data(totalresult)
 
 ###PSEUDO CODE for offense/defense ratings.
 #TODO: repeat this for the global ELO scores
@@ -30,7 +30,7 @@ totalresult <- read.csv(gold_standard, header = TRUE)
 # else if t1o = t2d -> date, t1o, t2d, TRUE
 #
 for (row in seq_len(nrow(totalresult))) {
-  date <- totalresult[row, "date"]
+  date <- totalresult[row, "Date"]
 
   t1 <- totalresult[row, "team1"]
   t2 <- totalresult[row, "team2"]
@@ -46,31 +46,26 @@ for (row in seq_len(nrow(totalresult))) {
 
 
   if (t1o > t2d) {
-    brow <- c(date, paste(o,t1, sep='_'), paste(d,t2, sep='_'), "FALSE")
+    brow <- c(date, paste("o",t1, sep='_'), paste("d",t2, sep='_'), "FALSE")
   } else if (t2d > t1o) {
-    brow <- c(date, paste(d,t2, sep='_'), paste(o,t1, sep='_'), "FALSE")
+    brow <- c(date, paste("d",t2, sep='_'), paste("o",t1, sep='_'), "FALSE")
   } else if (t1o == t2d) {
-    brow <- c(date, paste(o,t1, sep='_'), paste(d,t2, sep='_'), "TRUE")
+    brow <- c(date, paste("o",t1, sep='_'), paste("d",t2, sep='_'), "TRUE")
   }
-
-  ###AND###
-#if t2_rounds_won_offence > t1_rounds_won_defence
-#add a new row to the o/d list -> date, o_t2, d_t1, FALSE
-# else if t2o < t1d -> date, d_t1, o_t2, FALSE
-# else if t2o = t1d -> date, t2o, t1d, TRUE
 
   if (t1d > t2o) {
-    crow <- c(date, paste(d,t1, sep='_'), paste(o,t2, sep='_'), "FALSE")
+    crow <- c(date, paste("d",t1, sep='_'), paste("o",t2, sep='_'), "FALSE")
   } else if (t2o > t1d) {
-    crow <- c(date, paste(o,t2, sep='_'), paste(d,t1, sep='_'), "FALSE")
+    crow <- c(date, paste("o",t2, sep='_'), paste("d",t1, sep='_'), "FALSE")
   } else if (t1d == t2o) {
-    crow <- c(date, paste(d,t1, sep='_'), paste(o,t2, sep='_'), "TRUE")
+    crow <- c(date, paste("d",t1, sep='_'), paste("o",t2, sep='_'), "TRUE")
   }
+
   if (exists("elo_frame")) {
     elo_frame <- rbind(elo_frame, brow, crow)
   } else {
     elo_frame <- rbind(brow, crow)
-    colnames(elo_frame) <- c('date', 'winner', 'loser', 'draw')
+    #colnames(elo_frame) <- c('date', 'winner', 'loser', 'draw')
   }
 
     if (t1score > t2score) {
@@ -84,10 +79,13 @@ for (row in seq_len(nrow(totalresult))) {
     elo_total_frame <- rbind(elo_total_frame, prow)
   } else {
     elo_total_frame <- prow
-    colnames(elo_frame) <- c('date', 'winner', 'loser', 'draw')
+    #colnames(elo_frame) <- c('date', 'winner', 'loser', 'draw')
   }
 }
-elo_total_frame <- clean_data(elo_total_frame)
+elo_frame <- elo_frame[order("Date")]
+elo_total_frame <- elo_total_frame[order("Date")]
+colnames(elo_frame) <- c('Date', 'winner', 'loser', 'Draw')
+colnames(elo_total_frame) <- c('Date', 'winner', 'loser', 'Draw')
 write.csv(elo_total_frame, 'elo_total_frame.csv', row.names = FALSE)
-elo_frame <- clean_data(elo_frame)
+#elo_frame <- clean_data(elo_frame)
 write.csv(elo_frame, 'elo_frame.csv', row.names = FALSE)

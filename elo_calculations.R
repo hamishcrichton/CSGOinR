@@ -6,10 +6,10 @@
 
 #Read in the data
 if (!exists('totalresult')) {
- totalresult <- read.csv("C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\total_results_again.csv", header = TRUE)
+ totalresult <- read.csv("total_results_again.csv", header = TRUE)
  totalresult <- as.data.frame.matrix(totalresult)
- totalresult$winner <- gsub('Natus Vincere','Natus_Vincere', totalresult$winner)
- totalresult$loser <- gsub('Natus Vincere','Natus_Vincere', totalresult$loser)
+ totalresult <- gsub(' ','_', totalresult)
+
 
  #ELO rating process
  seqcheck(winner = totalresult$winner, loser = totalresult$loser, Date = totalresult$Date)
