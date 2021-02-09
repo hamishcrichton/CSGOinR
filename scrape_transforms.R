@@ -22,8 +22,8 @@ totalresult$t1_win_perc <- t1_wins / totalresult$h2htot
 form_converter <- function(pos, na_val){
   if (pos== "L") return (0)
   if (pos== "W") return (2)
-  if (pos== "tie") return (1)
-  if (pos== "NA") return (na_val)
+  if (pos== "T") return (1)
+  if (pos== "N") return (na_val)
 } 
 
 form_value <- function(form_as_string, na_val){
@@ -36,44 +36,36 @@ form_value <- function(form_as_string, na_val){
   out = sum(first, second, third, fourth, fifth) 
 }
 
+totalresult$team1_form <- str_replace_all(totalresult$team1_form, "A", "")
+totalresult$team1_form <- str_replace_all(totalresult$team1_form, "ie", "")
+totalresult$team2_form <- str_replace_all(totalresult$team2_form, "A", "")
+totalresult$team2_form <- str_replace_all(totalresult$team2_form, "ie", "")
+
+
 # loop to test different values for na
 #t1
-for (i in 1:10) {
-  na_val <- i / 5
-  out <- c(0)
-  out[i] <- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, na_val)
-  paste("form_val_", as.character(na_val), sep = "") <- out
-}
-
-
-totalresult$t1_form_na_as_0.2 <- form_val_0.2
-totalresult$t1_form_na_as_0.4 <- form_val_0.4
-totalresult$t1_form_na_as_0.6 <- form_val_0.6
-totalresult$t1_form_na_as_0.8 <- form_val_0.8
-totalresult$t1_form_na_as_1 <- form_val_1
-totalresult$t1_form_na_as_1.2 <- form_val_1.2
-totalresult$t1_form_na_as_1.4 <- form_val_1.4
-totalresult$t1_form_na_as_1.6 <- form_val_1.6
-totalresult$t1_form_na_as_1.8 <- form_val_1.8
-totalresult$t1_form_na_as_2 <- form_val_2
+totalresult$t1_form_na_0.2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 1 / 5)
+totalresult$t1_form_na_0.4<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 2 / 5)
+totalresult$t1_form_na_0.6<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 3 / 5)
+totalresult$t1_form_na_0.8<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 4 / 5)
+totalresult$t1_form_na_1<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 5 / 5)
+totalresult$t1_form_na_1.2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 6 / 5)
+totalresult$t1_form_na_1.4<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 7 / 5)
+totalresult$t1_form_na_1.6<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 8 / 5)
+totalresult$t1_form_na_1.8<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 9 / 5)
+totalresult$t1_form_na_2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 10 / 5)
 
 #t2
-for (i in 1:10) {
-  na_val <- i / 5
-  out[i] <- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, na_val)
-  paste("form_val_", as.character(na_val), sep = "") <- out
-}
-
-totalresult$t2_form_na_as_0.2 <- form_val_0.2
-totalresult$t2_form_na_as_0.4 <- form_val_0.4
-totalresult$t2_form_na_as_0.6 <- form_val_0.6
-totalresult$t2_form_na_as_0.8 <- form_val_0.8
-totalresult$t2_form_na_as_1 <- form_val_1
-totalresult$t2_form_na_as_1.2 <- form_val_1.2
-totalresult$t2_form_na_as_1.4 <- form_val_1.4
-totalresult$t2_form_na_as_1.6 <- form_val_1.6
-totalresult$t2_form_na_as_1.8 <- form_val_1.8
-totalresult$t2_form_na_as_2 <- form_val_2
+totalresult$t2_form_na_0.2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 1 / 5)
+totalresult$t2_form_na_0.4<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 2 / 5)
+totalresult$t2_form_na_0.6<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 3 / 5)
+totalresult$t2_form_na_0.8<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 4 / 5)
+totalresult$t2_form_na_1<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 5 / 5)
+totalresult$t2_form_na_1.2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 6 / 5)
+totalresult$t2_form_na_1.4<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 7 / 5)
+totalresult$t2_form_na_1.6<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 8 / 5)
+totalresult$t2_form_na_1.8<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 9 / 5)
+totalresult$t2_form_na_2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 10 / 5)
 
 
 # World Rank Num Val
