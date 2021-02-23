@@ -1,7 +1,9 @@
 install.packages('plyr')
+install.packages('dplyr')
 
 library(stringr)
 library(plyr)
+library(dplyr)
 
 totalresult <- read.csv("C:\\Users\\dowoo\\OneDrive\\Desktop\\total_results_again.csv", header = TRUE)
 
@@ -94,6 +96,15 @@ get_best_of_rds <- function(t1_score, t2_score) {
 
 totalresult$num_best_of <- Vectorize(get_best_of_rds, vectorize.args = c("t1_score", "t2_score"))(t1_sc, t2_sc)
 
+# outcome label
+create_outcome_label <- function(t1_score, t2_score) {
+  if (t1_score > t2_score) return (1)
+  else if (t1_score < t2_score) return (2)
+  else return (0)  
+}
+
+totalresult$outcome_label <- Vectorize(create_outcome_label, vectorize.args = c("t1_score", "t2_score"))(t1_sc, t2_sc)
+
 # avg player stats
 stats_convert <- function(stats) {
   if (length(stats) == 0){
@@ -178,3 +189,56 @@ for (i in 1:nrow(totalresult)){
   totalresult$t2_pstats_mean[i] <- mean(out_mean)
   totalresult$t2_pstats_med[i] <- mean(out_med)
 }
+
+totalresult$pstats_mean_dif <- totalresult$t1_pstats_mean - totalresult$t2_pstats_mean
+totalresult$pstats_med_dif <- totalresult$t1_pstats_med - totalresult$t2_pstats_med
+
+totalresult$form_na_1_dif <- totalresult$t1_form_na_0.2 - totalresult$t2_form_na_0.2
+totalresult$form_na_2_dif <- totalresult$t1_form_na_0.4 - totalresult$t2_form_na_0.4
+totalresult$form_na_3_dif <- totalresult$t1_form_na_0.6 - totalresult$t2_form_na_0.6
+totalresult$form_na_4_dif <- totalresult$t1_form_na_0.8 - totalresult$t2_form_na_0.8
+totalresult$form_na_5_dif <- totalresult$t1_form_na_1 - totalresult$t2_form_na_1
+totalresult$form_na_6_dif <- totalresult$t1_form_na_1.2 - totalresult$t2_form_na_1.2
+totalresult$form_na_7_dif <- totalresult$t1_form_na_1.4 - totalresult$t2_form_na_1.4
+totalresult$form_na_8_dif <- totalresult$t1_form_na_1.6 - totalresult$t2_form_na_1.6
+totalresult$form_na_9_dif <- totalresult$t1_form_na_1.8 - totalresult$t2_form_na_1.8
+totalresult$form_na_10_dif <- totalresult$t1_form_na_2 - totalresult$t2_form_na_2
+
+
+out_df <- select(totalresult, -c(head2head, 
+                                 team1_form, 
+                                 team2_form, 
+                                 team1_rank, 
+                                 team2_rank, 
+                                 t1_rounds_won_offence, 
+                                 t2_rounds_won_offence, 
+                                 t1_rounds_won_defence,
+                                 t2_rounds_won_defence,
+                                 team1_player_stats,
+                                 team2_player_stats,
+                                 t1_pstats_mean,
+                                 t2_pstats_mean,
+                                 t1_pstats_med,
+                                 t2_pstats_med,
+                                 t1_form_na_0.2,
+                                 t1_form_na_0.4,
+                                 t1_form_na_0.6,
+                                 t1_form_na_0.8,
+                                 t1_form_na_1,
+                                 t1_form_na_1.2,
+                                 t1_form_na_1.4,
+                                 t1_form_na_1.6,
+                                 t1_form_na_1.8,
+                                 t1_form_na_2,
+                                 t2_form_na_0.2,
+                                 t2_form_na_0.4,
+                                 t2_form_na_0.6,
+                                 t2_form_na_0.8,
+                                 t2_form_na_1,
+                                 t2_form_na_1.2,
+                                 t2_form_na_1.4,
+                                 t2_form_na_1.6,
+                                 t2_form_na_1.8,
+                                 t2_form_na_2))
+
+write.csv(out_df,"C:\\Users\\dowoo\\OneDrive\\Desktop\\scrape_transform_csgo_results.csv", row.names = FALSE)
