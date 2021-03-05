@@ -214,4 +214,4 @@ totalresult <- heavy_scrape(url)
 
 #Single truth for data: write to csv to remove the need to repeat
 #write.csv(totalresult, 'gold_standard.csv', row.names = FALSE)
-gold_standard <- "C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv"
+

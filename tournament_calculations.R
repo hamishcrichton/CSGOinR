@@ -1,6 +1,6 @@
 # Title     : TODO
 # Objective : TODO
-# Created by: hamis
+# Created by: Hamish
 # Created on: 10/01/2021
 
 #FIRST BRACKET
