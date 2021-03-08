@@ -18,14 +18,15 @@ t1_wins <- sapply(t1_wins, as.numeric)
 t2_wins <- sapply(t2_wins, as.numeric)
 totalresult$h2htot <- t1_wins + t2_wins
 totalresult$t1_win_perc <- t1_wins / totalresult$h2htot
+totalresult$t1_win_perc[is.nan(totalresult$t1_win_perc)]<-0.5
 
 # Convert form into single num val
 
 form_converter <- function(pos, na_val){
-  if (pos== "L") return (0)
-  if (pos== "W") return (2)
-  if (pos== "T") return (1)
-  if (pos== "N") return (na_val)
+  if (pos== "L") return (-1)
+  if (pos== "W") return (1)
+  if (pos== "T") return (0)
+  if (pos== "N") return (0)
 } 
 
 form_value <- function(form_as_string, na_val){
@@ -46,37 +47,21 @@ totalresult$team2_form <- str_replace_all(totalresult$team2_form, "ie", "")
 
 # loop to test different values for na
 #t1
-totalresult$t1_form_na_0.2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 1 / 5)
-totalresult$t1_form_na_0.4<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 2 / 5)
-totalresult$t1_form_na_0.6<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 3 / 5)
-totalresult$t1_form_na_0.8<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 4 / 5)
-totalresult$t1_form_na_1<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 5 / 5)
-totalresult$t1_form_na_1.2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 6 / 5)
-totalresult$t1_form_na_1.4<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 7 / 5)
-totalresult$t1_form_na_1.6<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 8 / 5)
-totalresult$t1_form_na_1.8<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 9 / 5)
-totalresult$t1_form_na_2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 10 / 5)
+totalresult$t1_form_num<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team1_form, 0)
 
 #t2
-totalresult$t2_form_na_0.2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 1 / 5)
-totalresult$t2_form_na_0.4<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 2 / 5)
-totalresult$t2_form_na_0.6<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 3 / 5)
-totalresult$t2_form_na_0.8<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 4 / 5)
-totalresult$t2_form_na_1<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 5 / 5)
-totalresult$t2_form_na_1.2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 6 / 5)
-totalresult$t2_form_na_1.4<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 7 / 5)
-totalresult$t2_form_na_1.6<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 8 / 5)
-totalresult$t2_form_na_1.8<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 9 / 5)
-totalresult$t2_form_na_2<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 10 / 5)
+totalresult$t2_form_num<- Vectorize(form_value, vectorize.args = c("form_as_string", "na_val"))(totalresult$team2_form, 0)
 
 
 # World Rank Num Val
 
 totalresult$wr_1 <- str_squish(totalresult$team1_rank)
 totalresult$wr_1 <- str_replace_all(totalresult$wr_1, "World rank: #", "")
+totalresult$wr_1 <- str_replace_all(totalresult$wr_1, "Unranked", "201")
 
 totalresult$wr_2 <- str_squish(totalresult$team2_rank)
 totalresult$wr_2 <- str_replace_all(totalresult$wr_2, "World rank: #", "")
+totalresult$wr_2 <- str_replace_all(totalresult$wr_2, "Unranked", "201")
 
 # Best of
 t1_sc <- totalresult$team1_score
@@ -108,7 +93,7 @@ totalresult$outcome_label <- Vectorize(create_outcome_label, vectorize.args = c(
 # avg player stats
 stats_convert <- function(stats) {
   if (length(stats) == 0){
-    return("NA")
+    return(1)
   }
   else{  
     check <- str_squish(as.character(stats))  
@@ -117,6 +102,22 @@ stats_convert <- function(stats) {
     return(check_3)
   }
 }
+
+# t1 na pstats
+t1_pstats <- totalresult$team1_player_stats
+levels <- levels(t1_pstats)
+levels[length(levels) + 1] <- "1"
+t1_pstats <- factor(t1_pstats, levels = levels)
+t1_pstats[is.na(t1_pstats)]<- "1"
+totalresult$team1_player_stats <- t1_pstats
+
+# t2 na pstats
+t2_pstats <- totalresult$team2_player_stats
+levels <- levels(t2_pstats)
+levels[length(levels) + 1] <- "1"
+t2_pstats <- factor(t2_pstats, levels = levels)
+t2_pstats[is.na(t2_pstats)]<- "1"
+totalresult$team2_player_stats <- t2_pstats
 
 
 # t1 loop
@@ -193,16 +194,7 @@ for (i in 1:nrow(totalresult)){
 totalresult$pstats_mean_dif <- totalresult$t1_pstats_mean - totalresult$t2_pstats_mean
 totalresult$pstats_med_dif <- totalresult$t1_pstats_med - totalresult$t2_pstats_med
 
-totalresult$form_na_1_dif <- totalresult$t1_form_na_0.2 - totalresult$t2_form_na_0.2
-totalresult$form_na_2_dif <- totalresult$t1_form_na_0.4 - totalresult$t2_form_na_0.4
-totalresult$form_na_3_dif <- totalresult$t1_form_na_0.6 - totalresult$t2_form_na_0.6
-totalresult$form_na_4_dif <- totalresult$t1_form_na_0.8 - totalresult$t2_form_na_0.8
-totalresult$form_na_5_dif <- totalresult$t1_form_na_1 - totalresult$t2_form_na_1
-totalresult$form_na_6_dif <- totalresult$t1_form_na_1.2 - totalresult$t2_form_na_1.2
-totalresult$form_na_7_dif <- totalresult$t1_form_na_1.4 - totalresult$t2_form_na_1.4
-totalresult$form_na_8_dif <- totalresult$t1_form_na_1.6 - totalresult$t2_form_na_1.6
-totalresult$form_na_9_dif <- totalresult$t1_form_na_1.8 - totalresult$t2_form_na_1.8
-totalresult$form_na_10_dif <- totalresult$t1_form_na_2 - totalresult$t2_form_na_2
+totalresult$form_num_dif <- totalresult$t1_form_num - totalresult$t2_form_num
 
 
 out_df <- select(totalresult, -c(head2head, 
@@ -210,35 +202,14 @@ out_df <- select(totalresult, -c(head2head,
                                  team2_form, 
                                  team1_rank, 
                                  team2_rank, 
-                                 t1_rounds_won_offence, 
-                                 t2_rounds_won_offence, 
-                                 t1_rounds_won_defence,
-                                 t2_rounds_won_defence,
                                  team1_player_stats,
                                  team2_player_stats,
                                  t1_pstats_mean,
                                  t2_pstats_mean,
                                  t1_pstats_med,
                                  t2_pstats_med,
-                                 t1_form_na_0.2,
-                                 t1_form_na_0.4,
-                                 t1_form_na_0.6,
-                                 t1_form_na_0.8,
-                                 t1_form_na_1,
-                                 t1_form_na_1.2,
-                                 t1_form_na_1.4,
-                                 t1_form_na_1.6,
-                                 t1_form_na_1.8,
-                                 t1_form_na_2,
-                                 t2_form_na_0.2,
-                                 t2_form_na_0.4,
-                                 t2_form_na_0.6,
-                                 t2_form_na_0.8,
-                                 t2_form_na_1,
-                                 t2_form_na_1.2,
-                                 t2_form_na_1.4,
-                                 t2_form_na_1.6,
-                                 t2_form_na_1.8,
-                                 t2_form_na_2))
+                                 t1_form_num,
+                                 t2_form_num
+                                 ))
 
 write.csv(out_df,"C:\\Users\\dowoo\\OneDrive\\Desktop\\scrape_transform_csgo_results.csv", row.names = FALSE)
