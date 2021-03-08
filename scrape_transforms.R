@@ -5,7 +5,7 @@ library(stringr)
 library(plyr)
 library(dplyr)
 
-totalresult <- read.csv("C:\\Users\\dowoo\\OneDrive\\Desktop\\total_results_again.csv", header = TRUE)
+totalresult <- read.csv("total_results_again.csv", header = TRUE)
 
 #Convert h2h to T1 Win % & total games played
 
@@ -212,4 +212,4 @@ out_df <- select(totalresult, -c(head2head,
                                  t2_form_num
                                  ))
 
-write.csv(out_df,"C:\\Users\\dowoo\\OneDrive\\Desktop\\scrape_transform_csgo_results.csv", row.names = FALSE)
+write.csv(out_df,"scrape_transform_csgo_results.csv", row.names = FALSE)

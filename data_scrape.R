@@ -21,11 +21,17 @@ library("ggbeeswarm")
 library("ggforce")
 library("httr")
 
+# This is used to retrieve all archived CS:GO matches from https://www.hltv.org/results
+# The following data are returned:
+# date, team1, team1_score, team2, team2_score, head2head, team1_form', 'team2_form', 'team1_rank', 'team2_rank', 't1_rounds_won_offence', 't2_rounds_won_offence', 't1_rounds_won_defence', 't2_rounds_won_defence', 'team1_player_stats', 'team2_player_stats'
+# heavy_scrape_one_page scrapes all matches from one page (e.g. https://www.hltv.org/results?offset=100)
+# heavy_scrape navigates along all pages in the archive, running heavy_scrape_one_page on each page
+
 #starting url
 url <- "https://www.hltv.org/results"
 
 #For one page of results, visit each link and scrape the required information
-heavy_scrape_one_page <- function (s_tree) {
+scrape_one_page <- function (s_tree) {
 
 match_links <- s_tree %>%
   html_nodes(".result-con ") %>%
@@ -37,7 +43,6 @@ for (k in match_links) {
   s <- rvest::html_session(k)
   if (status_code(s) == 500) {next}
   s_tree <- xml2::read_html(s)
-
 
   ### Scrape the results from one page
   date <- s_tree %>%
@@ -85,11 +90,6 @@ for (k in match_links) {
     html_nodes('.head-to-head .bold') %>%
     html_text()
   head2head <- paste(head2head[1], head2head[3], sep=" : ")
-
-  t1_rounds_won_offence <- 0
-  t2_rounds_won_offence <- 0
-  t1_rounds_won_defence <- 0
-  t2_rounds_won_defence <- 0
 
   out <- tryCatch(
       {
@@ -175,18 +175,11 @@ for (k in match_links) {
   return(totalresult)
 }
 
-
-#Testing heavy_scrape_one_page
-#url <- 'https://www.hltv.org/results?offset=1300'
-#s <- rvest::html_session(url)
-#s_tree <- xml2::read_html(s)
-#heavy_scrape_one_page(s_tree)
-
 #Move between pages of results, running heavy_scrape_one_page on each. Catches error when pages run out.
-heavy_scrape <- function(url) {
+scrape_all_pages <- function(url) {
   s <- rvest::html_session(url)
   s_tree <- xml2::read_html(s)
-  totalresult <- heavy_scrape_one_page(s_tree)
+  totalresult <- scrape_one_page(s_tree)
   out <- tryCatch(
       {# Loop until error: Move to the next page; scrape that page; collate the results
           #message("This is the 'try' part")
@@ -194,7 +187,7 @@ heavy_scrape <- function(url) {
             s <- s %>% follow_link(xpath = '//div[1]/div[2]/div[2]/a[2]')
             s_tree <- xml2::read_html(s)
             if (status_code(s) == 500) {next}
-            more_results <- heavy_scrape_one_page(s_tree)
+            more_results <- scrape_one_page(s_tree)
             totalresult <- rbind(totalresult, more_results)
             if (length(totalresult) %% 16000 ==0) {
               write.csv(totalresult, 'test_case_total.csv', row.names = FALSE)
@@ -210,8 +203,5 @@ heavy_scrape <- function(url) {
 }
 
 #Main function
-totalresult <- heavy_scrape(url)
+totalresult <- scrape_all_pages(url)
 
-#Single truth for data: write to csv to remove the need to repeat
-#write.csv(totalresult, 'gold_standard.csv', row.names = FALSE)
-gold_standard <- "C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv"

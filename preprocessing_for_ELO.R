@@ -18,17 +18,16 @@ dataframe <- totalresult[order(dataframe$Date, decreasing = FALSE),]
 return(dataframe)
 }
 
-#gold_standard <- "C:\\Users\\hamis\\PycharmProjects\\CSGOinR\\gold_standard.csv"
-totalresult <- read.csv("total_results_again.csv", header = TRUE)
-clean_data(totalresult)
+totalresult <- read.csv("scrape_transform_csgo_results.csv", header = TRUE)
+
 
 ###PSEUDO CODE for offense/defense ratings.
-#TODO: repeat this for the global ELO scores
 #if gold_standard['t1_rounds_won_offence'] > gold_standard['t2_rounds_won_defence']
 #add a new row to the o/d list -> date, o_t1, d_t2, FALSE
 # else if t1o < t2d -> date, d_t2, o_t1, FALSE
 # else if t1o = t2d -> date, t1o, t2d, TRUE
-#
+
+
 for (row in seq_len(nrow(totalresult))) {
   date <- totalresult[row, "Date"]
 
@@ -68,7 +67,7 @@ for (row in seq_len(nrow(totalresult))) {
     #colnames(elo_frame) <- c('date', 'winner', 'loser', 'draw')
   }
 
-    if (t1score > t2score) {
+  if (t1score > t2score) {
     prow <- c(date, t1, t2, "FALSE")
   } else if (t2score > t1score) {
     prow <- c(date, t2, t1, "FALSE")
@@ -82,8 +81,8 @@ for (row in seq_len(nrow(totalresult))) {
     #colnames(elo_frame) <- c('date', 'winner', 'loser', 'draw')
   }
 }
-elo_frame <- elo_frame[order("Date")]
-elo_total_frame <- elo_total_frame[order("Date")]
+#elo_frame <- elo_frame[order("Date")]
+#elo_total_frame <- elo_total_frame[order("Date")]
 colnames(elo_frame) <- c('Date', 'winner', 'loser', 'Draw')
 colnames(elo_total_frame) <- c('Date', 'winner', 'loser', 'Draw')
 write.csv(elo_total_frame, 'elo_total_frame.csv', row.names = FALSE)
