@@ -1,15 +1,9 @@
 library(mlbench)
 library(caret)
 library(FSinR)
-
 library(rpart)
 library(party)
 library(randomForest)
-
-require(foreign)
-require(nnet)
-require(ggplot2)
-require(reshape2)
 
 library(e1071)
 library(caTools)
