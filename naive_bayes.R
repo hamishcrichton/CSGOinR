@@ -7,6 +7,7 @@ library(effects)
 
 set.seed(7)
 
+# swtich this to read in feature sets
 orig_data <- read.csv("C:\\Users\\dowoo\\OneDrive\\Desktop\\too_many_columns.csv", header = TRUE)
 
 # # datasets
