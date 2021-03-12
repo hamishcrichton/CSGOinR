@@ -72,6 +72,9 @@ scrape_transform <- subset(scrape_transform, select = -c(team1_ELO,
                                                          team1_elo_d,
                                                          team2_elo_o))
 
+## need to add correct col order here
+# orig_data <- orig_data[, c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31, 32, 28)]
+
 #Save the result down
 write.csv(scrape_transform, 'too_many_columns.csv', row.names = FALSE)
 
