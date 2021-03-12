@@ -63,6 +63,7 @@ totalresult$wr_2 <- str_squish(totalresult$team2_rank)
 totalresult$wr_2 <- str_replace_all(totalresult$wr_2, "World rank: #", "")
 totalresult$wr_2 <- str_replace_all(totalresult$wr_2, "Unranked", "201")
 
+
 # Best of
 t1_sc <- totalresult$team1_score
 t2_sc <- totalresult$team2_score

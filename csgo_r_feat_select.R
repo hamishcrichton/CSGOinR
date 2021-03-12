@@ -21,6 +21,17 @@ orig_data <- read.csv("C:\\Users\\dowoo\\OneDrive\\Desktop\\too_many_columns.csv
 
 # # datasets
 
+# some amends
+# wr
+orig_data$wr_dif <- orig_data$wr_1 - orig_data$wr_2
+
+#elo difs
+orig_data$elo_dif <- orig_data$team1_ELO - orig_data$team2_ELO
+orig_data$elo_t1od_dif <- orig_data$team1_elo_o - orig_data$team2_elo_d
+orig_data$elo_t1do_dif <- orig_data$team1_elo_d - orig_data$team2_elo_o
+
+orig_data <- orig_data[, c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31, 32, 28)]
+
 #non cat
 non_cat_data <- subset(orig_data, select = -c(Date,
                                               team1,
@@ -34,7 +45,15 @@ non_cat_data <- subset(orig_data, select = -c(Date,
                                               team1_o,
                                               team1_d,
                                               team2_o,
-                                              team2_d))
+                                              team2_d,
+                                              team1_ELO,
+                                              team2_ELO,
+                                              team1_elo_o,
+                                              team1_elo_d,
+                                              team2_elo_d,
+                                              team2_elo_o,
+                                              wr_1,
+                                              wr_2))
 
 # drop outcomes for PCA non cat data
 pca_data <- subset(non_cat_data, select = -c(outcome_label))
@@ -52,7 +71,15 @@ rfe_data <- subset(orig_data, select = -c(Date,
                                           team1_o,
                                           team1_d,
                                           team2_o,
-                                          team2_d))
+                                          team2_d,
+                                          team1_ELO,
+                                          team2_ELO,
+                                          team1_elo_o,
+                                          team1_elo_d,
+                                          team2_elo_d,
+                                          team2_elo_o,
+                                          wr_1,
+                                          wr_2))
 
 #correlation plot
 col<- colorRampPalette(c("blue", "white", "red"))(20)
@@ -73,7 +100,7 @@ fviz_pca_var(res.pca,
 
 # feat importance
 require(randomForest)
-fit<- randomForest(factor(rfe_data[,15])~., data=rfe_data))
+fit<- randomForest(factor(rfe_data[,11])~., data=rfe_data)
 importance <- varImp(fit)
 print(importance)
 plot(importance)
@@ -81,7 +108,7 @@ varImpPlot(fit,type=2)
 
 #RFE
 control <- rfeControl(functions=rfFuncs, method="cv", number=3) # define the control using a random forest selection function
-results <- rfe(rfe_data[,1:14], rfe_data[,15], sizes=c(1:15), rfeControl=control)
+results <- rfe(rfe_data[,1:10], rfe_data[,11], sizes=c(1:11), rfeControl=control)
 print(results)
 predictors(results) # list the chosen features
 plot(results, type=c("g", "o"))
@@ -95,5 +122,5 @@ feature_variance
 
 # selectkbest
 filter_evaluator <- filterEvaluator('determinationCoefficient') #see https://rdrr.io/cran/FSinR/man/filterEvaluator.html for options
-skb_direct_search <- selectKBest(k=(ncol(rfe_data)-1))
+skb_direct_search <- selectKBest(k=(ncol(rfe_data)-1)) # set k to num of feats you want, will allocate bool flag
 skb_direct_search(rfe_data, 'outcome_label', filter_evaluator)
