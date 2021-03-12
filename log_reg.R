@@ -1,10 +1,5 @@
 library(mlbench)
 library(caret)
-library(FSinR)
-
-library(rpart)
-library(party)
-library(randomForest)
 
 require(foreign)
 require(nnet)
@@ -98,6 +93,8 @@ pca_test_labs <- pca_test_data$outcome_label
 pca_test_data <- predict(train.pca, newdata = pca_test_data[,1:ncol(pca_test_data)])
 pca_test_data <- data.frame(pca_test_data[,1:5], outcome_label = pca_test_labs)
 
+################################################################################
+
 # # Log Reg
 
 # full feat
@@ -108,7 +105,6 @@ trainData$outcome_label <- relevel(trainData$outcome_label, ref = 1)
 full_feat_multinom_model <- multinom(outcome_label ~ ., data = trainData)
 summary(full_feat_multinom_model)
 exp(coef(full_feat_multinom_model))
-head(round(fitted(full_feat_multinom_model), 2))
 
 ff_train_pred <- predict(full_feat_multinom_model, newdata = trainData, "class")
 ff_test_pred <- predict(full_feat_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "class")
@@ -116,13 +112,11 @@ ff_test_pred <- predict(full_feat_multinom_model, newdata = testData[,1:(ncol(te
 ff_train_probs <- predict(full_feat_multinom_model, newdata = trainData, "probs")
 ff_test_probs <- predict(full_feat_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "probs")
 
-tab <- table(trainData$outcome_label, ff_train_pred)
-round((sum(diag(tab))/sum(tab))*100,2)
-confusionMatrix(tab)
+cm <- table(trainData$outcome_label, ff_train_pred)
+confusionMatrix(cm)
 
-tab <- table(testData[,10], ff_test_pred)
-round((sum(diag(tab))/sum(tab))*100,2)
-confusionMatrix(tab)
+cm <- table(testData[,10], ff_test_pred)
+confusionMatrix(cm)
 
 plot(Effect("elo_dif",full_feat_multinom_model),multiline=T)
 plot(Effect("pstats_mean_dif",full_feat_multinom_model),multiline=T)
@@ -137,7 +131,6 @@ trainData$outcome_label <- relevel(trainData$outcome_label, ref = 1)
 elo_feat_multinom_model <- multinom(outcome_label ~ ., data = trainData)
 summary(elo_feat_multinom_model)
 exp(coef(elo_feat_multinom_model))
-head(round(fitted(elo_feat_multinom_model), 2))
 
 elo_train_pred <- predict(elo_feat_multinom_model, newdata = trainData, "class")
 elo_test_pred <- predict(elo_feat_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "class")
@@ -145,13 +138,11 @@ elo_test_pred <- predict(elo_feat_multinom_model, newdata = testData[,1:(ncol(te
 elo_train_probs <- predict(elo_feat_multinom_model, newdata = trainData, "probs")
 elo_test_probs <- predict(elo_feat_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "probs")
 
-tab <- table(trainData$outcome_label, elo_train_pred)
-round((sum(diag(tab))/sum(tab))*100,2)
-confusionMatrix(tab)
+cm <- table(trainData$outcome_label, elo_train_pred)
+confusionMatrix(cm)
 
-tab <- table(testData$outcome_label, elo_test_pred)
-round((sum(diag(tab))/sum(tab))*100,2)
-confusionMatrix(tab)
+cm <- table(testData$outcome_label, elo_test_pred)
+confusionMatrix(cm)
 
 plot(Effect("elo_dif",elo_feat_multinom_model),multiline=T)
 
@@ -165,7 +156,6 @@ trainData$outcome_label <- relevel(trainData$outcome_label, ref = 1)
 elo_wr_feat_multinom_model <- multinom(outcome_label ~ ., data = trainData)
 summary(elo_wr_feat_multinom_model)
 exp(coef(elo_wr_feat_multinom_model))
-head(round(fitted(elo_wr_feat_multinom_model), 2))
 
 elo_wr_train_pred <- predict(elo_wr_feat_multinom_model, newdata = trainData, "class")
 elo_wr_test_pred <- predict(elo_wr_feat_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "class")
@@ -173,13 +163,11 @@ elo_wr_test_pred <- predict(elo_wr_feat_multinom_model, newdata = testData[,1:(n
 elo_train_probs <- predict(elo_wr_feat_multinom_model, newdata = trainData, "probs")
 elo_test_probs <- predict(elo_wr_feat_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "probs")
 
-tab <- table(trainData$outcome_label, elo_wr_train_pred)
-round((sum(diag(tab))/sum(tab))*100,2)
-confusionMatrix(tab)
+cm <- table(trainData$outcome_label, elo_wr_train_pred)
+confusionMatrix(cm)
 
-tab <- table(testData$outcome_label, elo_wr_test_pred)
-round((sum(diag(tab))/sum(tab))*100,2)
-confusionMatrix(tab)
+cm <- table(testData$outcome_label, elo_wr_test_pred)
+confusionMatrix(cm)
 
 plot(Effect("elo_dif",elo_wr_feat_multinom_model),multiline=T)
 
@@ -194,7 +182,6 @@ trainData$outcome_label <- relevel(trainData$outcome_label, ref = 1)
 pca_multinom_model <- multinom(outcome_label ~ ., data = trainData)
 summary(pca_multinom_model)
 exp(coef(pca_multinom_model))
-head(round(fitted(pca_multinom_model), 2))
 
 pca_train_pred <- predict(pca_multinom_model, newdata = trainData, "class")
 pca_test_pred <- predict(pca_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "class")
@@ -202,12 +189,10 @@ pca_test_pred <- predict(pca_multinom_model, newdata = testData[,1:(ncol(testDat
 pca_train_probs <- predict(pca_multinom_model, newdata = trainData, "probs")
 pca_test_probs <- predict(pca_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "probs")
 
-tab <- table(trainData$outcome_label, pca_train_pred)
-round((sum(diag(tab))/sum(tab))*100,2)
-confusionMatrix(tab)
+cm <- table(trainData$outcome_label, pca_train_pred)
+confusionMatrix(cm)
 
-tab <- table(testData$outcome_label, pca_test_pred)
-round((sum(diag(tab))/sum(tab))*100,2)
-confusionMatrix(tab)
+cm <- table(testData$outcome_label, pca_test_pred)
+confusionMatrix(cm)
 
 plot(Effect("PC1",pca_multinom_model),multiline=T)

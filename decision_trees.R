@@ -98,6 +98,8 @@ pca_test_labs <- pca_test_data$outcome_label
 pca_test_data <- predict(train.pca, newdata = pca_test_data[,1:ncol(pca_test_data)])
 pca_test_data <- data.frame(pca_test_data[,1:5], outcome_label = pca_test_labs)
 
+################################################################################
+
 # # DT
 
 # full feat

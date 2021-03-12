@@ -1,15 +1,5 @@
 library(mlbench)
 library(caret)
-library(FSinR)
-
-library(rpart)
-library(party)
-library(randomForest)
-
-require(foreign)
-require(nnet)
-require(ggplot2)
-require(reshape2)
 
 library(e1071)
 library(caTools)
@@ -99,6 +89,7 @@ pca_test_data <- predict(train.pca, newdata = pca_test_data[,1:ncol(pca_test_dat
 pca_test_data <- data.frame(pca_test_data[,1:5], outcome_label = pca_test_labs)
 
 
+################################################################################
 
 # # SVM
 
@@ -111,7 +102,7 @@ full_feat_svm <- svm(outcome_label~., data=trainData,
                      method="C-classification", kernal="radial", 
                      gamma=0.1, cost=10)
 
-tune_obj <- tune(svm, outcome_label~., data=trainData, 
+tune_obj <- tune(svm, outcome_label~., data=trainData, #tuning object tests different cost and gamma values via gridsearch
                  ranges = list(gamma=c(0.1, 1, 10), cost = 10^(-1:2)),
                  tunecontrol = tune.control(sampling = "fix"))
 
@@ -123,9 +114,8 @@ summary(full_feat_svm)
 plot(full_feat_svm, trainData, elo_dif ~ wr_dif)
 
 svm_preds <- predict(full_feat_svm, testData)
-xtab <- table(testData$outcome_label, svm_preds)
-round((sum(diag(xtab))/sum(xtab))*100,2)
-confusionMatrix(xtab)
+cm <- table(testData$outcome_label, svm_preds)
+confusionMatrix(cm)
 
 ################################################################################
 
@@ -137,7 +127,7 @@ elo_feat_svm <- svm(outcome_label~., data=trainData,
                      method="C-classification", kernal="radial", 
                      gamma=0.1, cost=10)
 
-elo_tune_obj <- tune(svm, outcome_label~., data=trainData, 
+elo_tune_obj <- tune(svm, outcome_label~., data=trainData,  #tuning object tests different cost and gamma values via gridsearch
                  ranges = list(gamma=c(0.1, 1, 10), cost = 10^(-1:2)),
                  tunecontrol = tune.control(sampling = "fix"))
 
@@ -149,9 +139,8 @@ summary(elo_feat_svm)
 plot(elo_feat_svm, trainData, elo_dif ~ elo_t1od_dif)
 
 svm_preds <- predict(elo_feat_svm, testData)
-xtab <- table(testData$outcome_label, svm_preds)
-round((sum(diag(xtab))/sum(xtab))*100,2)
-confusionMatrix(xtab)
+cm <- table(testData$outcome_label, svm_preds)
+confusionMatrix(cm)
 
 ################################################################################
 
@@ -163,7 +152,7 @@ elo_wr_feat_svm <- svm(outcome_label~., data=trainData,
                     method="C-classification", kernal="radial", 
                     gamma=0.1, cost=10)
 
-elo_wr_tune_obj <- tune(svm, outcome_label~., data=trainData, 
+elo_wr_tune_obj <- tune(svm, outcome_label~., data=trainData,  #tuning object tests different cost and gamma values via gridsearch
                      ranges = list(gamma=c(0.1, 1, 10), cost = 10^(-1:2)),
                      tunecontrol = tune.control(sampling = "fix"))
 
@@ -175,9 +164,8 @@ summary(elo_wr_feat_svm)
 plot(elo_wr_feat_svm, trainData, elo_dif ~ wr_dif)
 
 svm_preds <- predict(elo_wr_feat_svm, testData)
-xtab <- table(testData$outcome_label, svm_preds)
-round((sum(diag(xtab))/sum(xtab))*100,2)
-confusionMatrix(xtab)
+cm <- table(testData$outcome_label, svm_preds)
+confusionMatrix(cm)
 
 ################################################################################
 
@@ -190,7 +178,7 @@ pca_feat_svm <- svm(outcome_label~., data=trainData,
                        method="C-classification", kernal="radial", 
                        gamma=0.1, cost=10)
 
-pca_tune_obj <- tune(svm, outcome_label~., data=trainData, 
+pca_tune_obj <- tune(svm, outcome_label~., data=trainData,  #tuning object tests different cost and gamma values via gridsearch
                         ranges = list(gamma=c(0.1, 1, 10), cost = 10^(-1:2)),
                         tunecontrol = tune.control(sampling = "fix"))
 
@@ -202,6 +190,5 @@ summary(pca_feat_svm)
 plot(pca_feat_svm, trainData, PC1 ~ PC2)
 
 svm_preds <- predict(pca_feat_svm, testData)
-xtab <- table(testData$outcome_label, svm_preds)
-round((sum(diag(xtab))/sum(xtab))*100,2)
-confusionMatrix(xtab)
+cm <- table(testData$outcome_label, svm_preds)
+confusionMatrix(cm)

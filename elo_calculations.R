@@ -60,6 +60,18 @@ scrape_transform$team1_elo_d <- extract_elo(res, extractdate = scrape_transform$
 scrape_transform$team2_elo_o <- extract_elo(res, extractdate = scrape_transform$Date, IDs = scrape_transform$team2_o)
 scrape_transform$team2_elo_d <- extract_elo(res, extractdate = scrape_transform$Date, IDs = scrape_transform$team2_d)
 
+#elo difs
+orig_data$elo_dif <- orig_data$team1_ELO - orig_data$team2_ELO
+orig_data$elo_t1od_dif <- orig_data$team1_elo_o - orig_data$team2_elo_d
+orig_data$elo_t1do_dif <- orig_data$team1_elo_d - orig_data$team2_elo_o
+
+scrape_transform <- subset(scrape_transform, select = -c(team1_ELO,
+                                                         team2_ELO,
+                                                         team1_elo_o,
+                                                         team2_elo_d,
+                                                         team1_elo_d,
+                                                         team2_elo_o))
+
 #Save the result down
 write.csv(scrape_transform, 'too_many_columns.csv', row.names = FALSE)
 

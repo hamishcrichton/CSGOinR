@@ -1,15 +1,5 @@
 library(mlbench)
 library(caret)
-library(FSinR)
-
-library(rpart)
-library(party)
-library(randomForest)
-
-require(foreign)
-require(nnet)
-require(ggplot2)
-require(reshape2)
 
 library(e1071)
 library(caTools)
@@ -99,9 +89,12 @@ pca_test_data <- predict(train.pca, newdata = pca_test_data[,1:ncol(pca_test_dat
 pca_test_data <- data.frame(pca_test_data[,1:5], outcome_label = pca_test_labs)
 
 
+################################################################################
+
 # # Naive Bayes
 
 # full feat
+
 trainData <- full_feat_set[trainRowNumbers,]
 testData <- full_feat_set[-trainRowNumbers,]
 
@@ -109,13 +102,13 @@ ff_bayes_classif <- naiveBayes(outcome_label ~ ., data = trainData)
 ff_bayes_classif 
 y_pred <- predict(ff_bayes_classif, newdata = testData) 
 
-ff_cm <- table(testData$outcome_label, y_pred) 
-ff_cm 
-confusionMatrix(ff_cm)
+cm <- table(testData$outcome_label, y_pred) 
+confusionMatrix(cm)
 
 ################################################################################
 
 # elo feats
+
 trainData <- elo_feat_set[trainRowNumbers,]
 testData <- elo_feat_set[-trainRowNumbers,]
 
@@ -123,13 +116,13 @@ elo_bayes_classif <- naiveBayes(outcome_label ~ ., data = trainData)
 elo_bayes_classif 
 y_pred <- predict(elo_bayes_classif, newdata = testData) 
 
-elo_cm <- table(testData$outcome_label, y_pred) 
-elo_cm 
-confusionMatrix(elo_cm)
+cm <- table(testData$outcome_label, y_pred) 
+confusionMatrix(cm)
 
 ################################################################################
 
 # elo_wr feats
+
 trainData <- elo_wr_pstats_feat_set[trainRowNumbers,]
 testData <- elo_wr_pstats_feat_set[-trainRowNumbers,]
 
@@ -137,9 +130,8 @@ elo_wr_bayes_classif <- naiveBayes(outcome_label ~ ., data = trainData)
 elo_wr_bayes_classif
 y_pred <- predict(elo_wr_bayes_classif, newdata = testData) 
 
-elo_wr_cm <- table(testData$outcome_label, y_pred) 
-elo_wr_cm 
-confusionMatrix(elo_wr_cm)
+cm <- table(testData$outcome_label, y_pred) 
+confusionMatrix(cm)
 
 ################################################################################
 
@@ -152,6 +144,5 @@ pca_bayes_classif <- naiveBayes(outcome_label ~ ., data = trainData)
 pca_bayes_classif
 y_pred <- predict(pca_bayes_classif, newdata = testData) 
 
-pca_cm <- table(testData$outcome_label, y_pred) 
-pca_cm 
-confusionMatrix(pca_cm)
+cm <- table(testData$outcome_label, y_pred) 
+confusionMatrix(cm)

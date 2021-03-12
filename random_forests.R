@@ -1,19 +1,8 @@
 library(mlbench)
 library(caret)
-library(FSinR)
-
-library(rpart)
-library(party)
 library(randomForest)
-
-require(foreign)
-require(nnet)
-require(ggplot2)
-require(reshape2)
-
 library(e1071)
 library(caTools)
-library(effects)
 
 set.seed(7)
 
@@ -98,6 +87,7 @@ pca_test_labs <- pca_test_data$outcome_label
 pca_test_data <- predict(train.pca, newdata = pca_test_data[,1:ncol(pca_test_data)])
 pca_test_data <- data.frame(pca_test_data[,1:5], outcome_label = pca_test_labs)
 
+################################################################################
 
 # # RF
 
@@ -109,7 +99,6 @@ fullfeat_rf <- randomForest(outcome_label ~ .,data=trainData)
 fullfeat_rf
 fullfeat_pred <- predict(fullfeat_rf, newdata=testData[,1:(ncol(testData)-1)])
 cm <- table(observed=testData[,10], predicted=fullfeat_pred)
-round((sum(diag(cm))/sum(cm))*100,2)
 confusionMatrix(cm)
 
 ################################################################################
@@ -122,7 +111,6 @@ elo_feat_rf <- randomForest(outcome_label ~ .,data=trainData)
 elo_feat_rf
 elo_feat_pred <- predict(elo_feat_rf, newdata=testData[,1:(ncol(testData)-1)])
 cm <- table(observed=testData[,ncol(testData)], predicted=elo_feat_pred)
-round((sum(diag(cm))/sum(cm))*100,2)
 confusionMatrix(cm)
 
 ################################################################################
@@ -135,7 +123,6 @@ elo_wr_feat_rf <- randomForest(outcome_label ~ .,data=trainData)
 elo_wr_feat_rf
 elo_wr_feat_pred <- predict(elo_wr_feat_rf, newdata=testData[,1:(ncol(testData)-1)])
 cm <- table(observed=testData[,ncol(testData)], predicted=elo_wr_feat_pred)
-round((sum(diag(cm))/sum(cm))*100,2)
 confusionMatrix(cm)
 ################################################################################
 
@@ -148,5 +135,4 @@ pca_rf <- randomForest(outcome_label ~ .,data=trainData)
 pca_rf
 pca_pred <- predict(pca_rf, newdata=testData[,1:(ncol(testData)-1)])
 cm <- table(observed=testData[,6], predicted=pca_pred)
-round((sum(diag(cm))/sum(cm))*100,2)
 confusionMatrix(cm)

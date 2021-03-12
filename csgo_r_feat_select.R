@@ -1,34 +1,15 @@
-install.packages('PerformanceAnalytics')
-install.packages('corrplot')
-install.packages("factoextra")
-install.packages("mlbench")
-install.packages("caret")
-install.packages("FSinR")
-
-library(PerformanceAnalytics)
 library(corrplot)
-source("http://www.sthda.com/upload/rquery_cormat.r")
-
 library(factoextra)
-
 library(mlbench)
 library(caret)
 library(FSinR)
+library(randomForest)
 
 set.seed(7)
 
 orig_data <- read.csv("C:\\Users\\dowoo\\OneDrive\\Desktop\\too_many_columns.csv", header = TRUE)
 
 # # datasets
-
-# some amends
-# wr
-orig_data$wr_dif <- orig_data$wr_1 - orig_data$wr_2
-
-#elo difs
-orig_data$elo_dif <- orig_data$team1_ELO - orig_data$team2_ELO
-orig_data$elo_t1od_dif <- orig_data$team1_elo_o - orig_data$team2_elo_d
-orig_data$elo_t1do_dif <- orig_data$team1_elo_d - orig_data$team2_elo_o
 
 orig_data <- orig_data[, c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31, 32, 28)]
 
@@ -81,46 +62,60 @@ rfe_data <- subset(orig_data, select = -c(Date,
                                           wr_1,
                                           wr_2))
 
-#correlation plot
+#################################################################
+
+# # correlation plot
+
 col<- colorRampPalette(c("blue", "white", "red"))(20)
 cormat<-rquery.cormat(non_cat_data, type="full", col=col)
 
-# PCA
+#################################################################
+
+# # PCA
+
 res.pca <- prcomp(pca_data, scale = TRUE)
 
-# plot var explained
-fviz_eig(res.pca)
+fviz_eig(res.pca) # plot var explained
 
-# group correlated vars
-fviz_pca_var(res.pca,
+fviz_pca_var(res.pca, # group correlated vars
              col.var = "contrib", # Color by contributions to the PC
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = TRUE     # Avoid text overlapping
 )
 
-# feat importance
-require(randomForest)
-fit<- randomForest(factor(rfe_data[,11])~., data=rfe_data)
+#################################################################
+
+# # feat importance
+
+fit<- randomForest(factor(rfe_data[,11])~., data=rfe_data) #fit randomforest
 importance <- varImp(fit)
 print(importance)
 plot(importance)
 varImpPlot(fit,type=2)
 
-#RFE
+#################################################################
+
+# # RFE
+
 control <- rfeControl(functions=rfFuncs, method="cv", number=3) # define the control using a random forest selection function
 results <- rfe(rfe_data[,1:10], rfe_data[,11], sizes=c(1:11), rfeControl=control)
 print(results)
 predictors(results) # list the chosen features
 plot(results, type=c("g", "o"))
 
-#feat var
-var(rfe_data) # default package
+#################################################################
+
+# # feat var
+
 feature_variance <- caret::nearZeroVar(rfe_data, saveMetrics = TRUE) #caret version
 feature_variance
 # freqRatio: This is the ratio of the percentage frequency for the most common value over the second most common value.
 # percentUnique: This is the number of unique values divided by the total number of samples multiplied by 100.
 
-# selectkbest
+#################################################################
+
+# # selectkbest
+
 filter_evaluator <- filterEvaluator('determinationCoefficient') #see https://rdrr.io/cran/FSinR/man/filterEvaluator.html for options
 skb_direct_search <- selectKBest(k=(ncol(rfe_data)-1)) # set k to num of feats you want, will allocate bool flag
 skb_direct_search(rfe_data, 'outcome_label', filter_evaluator)
