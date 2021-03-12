@@ -6,7 +6,9 @@ library(caTools)
 
 set.seed(7)
 
-orig_data <- read.csv("C:\\Users\\dowoo\\OneDrive\\Desktop\\too_many_columns.csv", header = TRUE)
+# # load data
+
+orig_data <- read.csv("too_many_columns.csv", header = TRUE)
 
 # # datasets
 
