@@ -55,6 +55,7 @@ testData <- full_feat_set[-trainRowNumbers,]
 ff_bayes_classif <- naiveBayes(outcome_label ~ ., data = trainData)
 ff_bayes_classif 
 y_pred <- predict(ff_bayes_classif, newdata = testData) 
+y_probs <- predict(ff_bayes_classif, newdata = testData, 'raw') 
 
 cm <- table(testData$outcome_label, y_pred) 
 confusionMatrix(cm)
@@ -69,6 +70,7 @@ testData <- elo_feat_set[-trainRowNumbers,]
 elo_bayes_classif <- naiveBayes(outcome_label ~ ., data = trainData)
 elo_bayes_classif 
 y_pred <- predict(elo_bayes_classif, newdata = testData) 
+y_probs <- predict(elo_bayes_classif, newdata = testData, 'raw') 
 
 cm <- table(testData$outcome_label, y_pred) 
 confusionMatrix(cm)
@@ -82,7 +84,8 @@ testData <- elo_wr_pstats_feat_set[-trainRowNumbers,]
 
 elo_wr_bayes_classif <- naiveBayes(outcome_label ~ ., data = trainData)
 elo_wr_bayes_classif
-y_pred <- predict(elo_wr_bayes_classif, newdata = testData) 
+y_pred <- predict(elo_wr_bayes_classif, newdata = testData)
+y_probs <- predict(elo_wr_bayes_classif, newdata = testData, 'raw')
 
 cm <- table(testData$outcome_label, y_pred) 
 confusionMatrix(cm)
@@ -96,7 +99,8 @@ testData <- pca_test_data
 
 pca_bayes_classif <- naiveBayes(outcome_label ~ ., data = trainData)
 pca_bayes_classif
-y_pred <- predict(pca_bayes_classif, newdata = testData) 
+y_pred <- predict(pca_bayes_classif, newdata = testData)
+y_probs <- predict(pca_bayes_classif, newdata = testData, 'raw')
 
 cm <- table(testData$outcome_label, y_pred) 
 confusionMatrix(cm)

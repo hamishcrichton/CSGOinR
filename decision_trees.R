@@ -103,8 +103,10 @@ plot(dt_full_feat)
 text(dt_full_feat, digits = 3)
 print(dt_full_feat, digits = 2)
 
-predicted.classes <- dt_full_feat %>% 
+dt_predicted.classes <- dt_full_feat %>% 
   predict(testData, type = "class")
+
+dt_probs <- predict(dt_full_feat, newdata=testData[,1:(ncol(testData)-1)], "prob")
 
 mean(predicted.classes == testData$outcome_label)
 
@@ -133,6 +135,8 @@ print(dt_elo_feat, digits = 2)
 predicted.classes <- dt_elo_feat %>% 
   predict(testData, type = "class")
 
+dt_probs <- predict(dt_elo_feat, newdata=testData[,1:(ncol(testData)-1)], "prob")
+
 mean(predicted.classes == testData$outcome_label)
 
 cm <- table(testData$outcome_label, predicted.classes)
@@ -159,6 +163,8 @@ print(dt_elowr_feat, digits = 2)
 
 predicted.classes <- dt_elowr_feat %>% 
   predict(testData, type = "class")
+
+dt_probs <- predict(dt_elowr_feat, newdata=testData[,1:(ncol(testData)-1)], "prob")
 
 mean(predicted.classes == testData$outcome_label)
 
@@ -187,6 +193,8 @@ print(dt_pca_feat, digits = 2)
 
 predicted.classes <- dt_pca_feat %>% 
   predict(testData, type = "class")
+
+dt_probs <- predict(dt_pca_feat, newdata=testData[,1:(ncol(testData)-1)], "prob")
 
 mean(predicted.classes == testData$outcome_label)
 

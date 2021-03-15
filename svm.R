@@ -52,7 +52,7 @@ pca_test_data <- data.frame(pca_test_data[,1:5], outcome_label = pca_test_labs)
 trainData <- full_feat_set[trainRowNumbers,]
 testData <- full_feat_set[-trainRowNumbers,]
 
-full_feat_svm <- svm(outcome_label~., data=trainData, 
+full_feat_svm <- svm(outcome_label~., data=trainData, probability=TRUE, 
                      method="C-classification", kernal="radial", 
                      gamma=0.1, cost=10)
 
@@ -68,6 +68,11 @@ summary(full_feat_svm)
 plot(full_feat_svm, trainData, elo_dif ~ wr_dif)
 
 svm_preds <- predict(full_feat_svm, testData)
+
+svm_probs <- predict(full_feat_svm, testData, probability=TRUE)
+
+svm_probs
+
 cm <- table(testData$outcome_label, svm_preds)
 confusionMatrix(cm)
 
@@ -77,7 +82,7 @@ confusionMatrix(cm)
 trainData <- elo_feat_set[trainRowNumbers,]
 testData <- elo_feat_set[-trainRowNumbers,]
 
-elo_feat_svm <- svm(outcome_label~., data=trainData, 
+elo_feat_svm <- svm(outcome_label~., data=trainData, probability=TRUE,
                      method="C-classification", kernal="radial", 
                      gamma=0.1, cost=10)
 
@@ -93,6 +98,8 @@ summary(elo_feat_svm)
 plot(elo_feat_svm, trainData, elo_dif ~ elo_t1od_dif)
 
 svm_preds <- predict(elo_feat_svm, testData)
+svm_probs <- predict(elo_feat_svm, testData, probability=TRUE)
+
 cm <- table(testData$outcome_label, svm_preds)
 confusionMatrix(cm)
 
@@ -102,7 +109,7 @@ confusionMatrix(cm)
 trainData <- elo_wr_pstats_feat_set[trainRowNumbers,]
 testData <- elo_wr_pstats_feat_set[-trainRowNumbers,]
 
-elo_wr_feat_svm <- svm(outcome_label~., data=trainData, 
+elo_wr_feat_svm <- svm(outcome_label~., data=trainData, probability=TRUE,
                     method="C-classification", kernal="radial", 
                     gamma=0.1, cost=10)
 
@@ -118,6 +125,8 @@ summary(elo_wr_feat_svm)
 plot(elo_wr_feat_svm, trainData, elo_dif ~ wr_dif)
 
 svm_preds <- predict(elo_wr_feat_svm, testData)
+svm_probs <- predict(elo_wr_feat_svm, testData, probability=TRUE)
+
 cm <- table(testData$outcome_label, svm_preds)
 confusionMatrix(cm)
 
@@ -128,7 +137,7 @@ confusionMatrix(cm)
 trainData <- pca_train_data
 testData <- pca_test_data
 
-pca_feat_svm <- svm(outcome_label~., data=trainData, 
+pca_feat_svm <- svm(outcome_label~., data=trainData, probability=TRUE,
                        method="C-classification", kernal="radial", 
                        gamma=0.1, cost=10)
 
@@ -144,5 +153,7 @@ summary(pca_feat_svm)
 plot(pca_feat_svm, trainData, PC1 ~ PC2)
 
 svm_preds <- predict(pca_feat_svm, testData)
+svm_probs <- predict(pca_feat_svm, testData, probability=TRUE)
+
 cm <- table(testData$outcome_label, svm_preds)
 confusionMatrix(cm)

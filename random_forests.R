@@ -99,7 +99,9 @@ testData <- full_feat_set[-trainRowNumbers,]
 
 fullfeat_rf <- randomForest(outcome_label ~ .,data=trainData)
 fullfeat_rf
+testData
 fullfeat_pred <- predict(fullfeat_rf, newdata=testData[,1:(ncol(testData)-1)])
+fullfeat_probs <- predict(fullfeat_rf, newdata=testData[,1:(ncol(testData)-1)], "prob")
 cm <- table(observed=testData[,10], predicted=fullfeat_pred)
 confusionMatrix(cm)
 
@@ -112,6 +114,7 @@ testData <- elo_feat_set[-trainRowNumbers,]
 elo_feat_rf <- randomForest(outcome_label ~ .,data=trainData)
 elo_feat_rf
 elo_feat_pred <- predict(elo_feat_rf, newdata=testData[,1:(ncol(testData)-1)])
+elo_feat_probs <- predict(fullfeat_rf, newdata=testData[,1:(ncol(testData)-1)], "prob")
 cm <- table(observed=testData[,ncol(testData)], predicted=elo_feat_pred)
 confusionMatrix(cm)
 
@@ -124,6 +127,7 @@ testData <- elo_wr_pstats_feat_set[-trainRowNumbers,]
 elo_wr_feat_rf <- randomForest(outcome_label ~ .,data=trainData)
 elo_wr_feat_rf
 elo_wr_feat_pred <- predict(elo_wr_feat_rf, newdata=testData[,1:(ncol(testData)-1)])
+elo_wr_feat_probs <- predict(fullfeat_rf, newdata=testData[,1:(ncol(testData)-1)], "prob")
 cm <- table(observed=testData[,ncol(testData)], predicted=elo_wr_feat_pred)
 confusionMatrix(cm)
 ################################################################################
@@ -136,5 +140,6 @@ testData <- pca_test_data
 pca_rf <- randomForest(outcome_label ~ .,data=trainData)
 pca_rf
 pca_pred <- predict(pca_rf, newdata=testData[,1:(ncol(testData)-1)])
+pca_probs <- predict(fullfeat_rf, newdata=testData[,1:(ncol(testData)-1)], "prob")
 cm <- table(observed=testData[,6], predicted=pca_pred)
 confusionMatrix(cm)

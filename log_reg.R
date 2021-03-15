@@ -66,9 +66,6 @@ ff_test_pred <- predict(full_feat_multinom_model, newdata = testData[,1:(ncol(te
 ff_train_probs <- predict(full_feat_multinom_model, newdata = trainData, "probs")
 ff_test_probs <- predict(full_feat_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "probs")
 
-cm <- table(trainData$outcome_label, ff_train_pred)
-confusionMatrix(cm)
-
 cm <- table(testData[,10], ff_test_pred)
 confusionMatrix(cm)
 
@@ -92,9 +89,6 @@ elo_test_pred <- predict(elo_feat_multinom_model, newdata = testData[,1:(ncol(te
 elo_train_probs <- predict(elo_feat_multinom_model, newdata = trainData, "probs")
 elo_test_probs <- predict(elo_feat_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "probs")
 
-cm <- table(trainData$outcome_label, elo_train_pred)
-confusionMatrix(cm)
-
 cm <- table(testData$outcome_label, elo_test_pred)
 confusionMatrix(cm)
 
@@ -116,9 +110,6 @@ elo_wr_test_pred <- predict(elo_wr_feat_multinom_model, newdata = testData[,1:(n
 
 elo_train_probs <- predict(elo_wr_feat_multinom_model, newdata = trainData, "probs")
 elo_test_probs <- predict(elo_wr_feat_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "probs")
-
-cm <- table(trainData$outcome_label, elo_wr_train_pred)
-confusionMatrix(cm)
 
 cm <- table(testData$outcome_label, elo_wr_test_pred)
 confusionMatrix(cm)
@@ -142,9 +133,6 @@ pca_test_pred <- predict(pca_multinom_model, newdata = testData[,1:(ncol(testDat
 
 pca_train_probs <- predict(pca_multinom_model, newdata = trainData, "probs")
 pca_test_probs <- predict(pca_multinom_model, newdata = testData[,1:(ncol(testData)-1)], "probs")
-
-cm <- table(trainData$outcome_label, pca_train_pred)
-confusionMatrix(cm)
 
 cm <- table(testData$outcome_label, pca_test_pred)
 confusionMatrix(cm)
